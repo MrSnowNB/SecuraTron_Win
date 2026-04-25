@@ -10,18 +10,16 @@ sys.path.append(str(Path(__file__).parent))
 
 import ledger
 import mem
+import parsers
 
 BASE_DIR = Path.home() / ".securatron"
 
 def safe_expand(cmd_template: str, inputs: dict) -> str:
     """Safely expand command templates using inputs."""
-    # Strict allowlist expansion to prevent shell injection
-    # In a real harness, this would be much more restrictive
     expanded = cmd_template
     for key, value in inputs.items():
         placeholder = "{" + key + "}"
         if placeholder in expanded:
-            # Simple escape: wrap in single quotes
             safe_value = str(value).replace("'", "'\\''")
             expanded = expanded.replace(placeholder, safe_value)
     return expanded
@@ -32,9 +30,8 @@ def dispatch(card: dict, inputs: dict, project_id: str, session_id: str) -> dict
     impl = card["implementation"]
     start_time = time.time()
     
-    # Initialize trial entry
     trial_entry = {
-        "ulid": session_id, # Simplified
+        "ulid": session_id,
         "skill_version": card.get("version", 1),
         "session_id": session_id,
         "project_id": project_id,
@@ -52,7 +49,6 @@ def dispatch(card: dict, inputs: dict, project_id: str, session_id: str) -> dict
             
         duration_ms = int((time.time() - start_time) * 1000)
         
-        # Update trial with success
         trial_entry.update({
             "status": "success" if result.get("ok", True) else "failure",
             "duration_ms": duration_ms,
@@ -77,32 +73,40 @@ def run_shell_atom(card: dict, inputs: dict, session_id: str) -> dict:
     cmd_template = card["implementation"]["cmd"]
     command = safe_expand(cmd_template, inputs)
     
-    # Create artifact path
     artifact_id = f"{card['id']}-{int(time.time())}"
     artifact_rel_path = f"sessions/{session_id}/artifacts/{artifact_id}.raw"
     artifact_full_path = BASE_DIR / artifact_rel_path
     artifact_full_path.parent.mkdir(parents=True, exist_ok=True)
     
-    # Run command
+    start_run = time.time()
     process = subprocess.run(
         command,
-        shell=True, # Using shell=True for template expansion; real harness would build argv
+        shell=True,
         capture_output=True,
         text=True,
         timeout=300
     )
+    duration_ms = int((time.time() - start_run) * 1000)
     
-    # Write raw artifact
     raw_output = f"STDOUT:\n{process.stdout}\n\nSTDERR:\n{process.stderr}\n\nEXIT_CODE: {process.returncode}"
     artifact_full_path.write_text(raw_output)
     
-    # Result parsing (Step 3 will implement the registry)
-    # For now, return a raw success/fail
+    output_type = card["outputs"]["type"]
+    parsed = parsers.parse(
+        output_type, 
+        process.stdout, 
+        raw_stderr=process.stderr, 
+        exit_code=process.returncode,
+        duration_ms=duration_ms,
+        inputs=inputs
+    )
+    
+    if not parsed["ok"]:
+        return parsed
+
     return {
         "ok": process.returncode == 0,
-        "stdout": process.stdout,
-        "stderr": process.stderr,
-        "exit_code": process.returncode,
+        "result": parsed["result"],
         "artifact_path": artifact_rel_path
     }
 
