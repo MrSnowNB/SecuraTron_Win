@@ -1,0 +1,39 @@
+# skill-card v1
+id: kali.nmap
+version: 1
+kind: atom
+tier: global
+author: human
+created: "2026-04-25T16:52:00-04:00"
+description: "Perform network service discovery and fingerprinting using nmap."
+
+inputs:
+  target: {type: string, required: true, validator: "rfc1123_host_or_cidr"}
+  flags:  {type: string, default: "-sV -Pn -T3"}
+outputs:
+  type: nmap.scan.v1
+  artifact_path: "{session}/artifacts/nmap-{ts}.xml"
+
+preconditions:
+  - "scope.includes(inputs.target)"
+  - "network.reachable(inputs.target)"
+postconditions:
+  - "artifact_exists(outputs.artifact_path)"
+  - "result.hosts|length > 0"
+
+risk: low
+side_effects: [network_probe]
+reversible: true
+
+implementation:
+  kind: shell
+  cmd: "nmap {flags} -oX - {target}"
+
+trials:
+  success: 0
+  failure: 0
+  last_run: null
+promotion:
+  required_success: 3
+  required_distinct_inputs: 3
+  requires_human_review: false

@@ -1,0 +1,33 @@
+# skill-card v1
+id: shell.run
+version: 1
+kind: atom
+tier: global
+author: human
+created: "2026-04-25T16:52:00-04:00"
+description: "Execute a raw shell command on the host."
+
+inputs:
+  cmd: {type: string, required: true}
+outputs:
+  type: shell.run.v1
+
+preconditions: []
+postconditions: []
+
+risk: medium
+side_effects: [system_modification]
+reversible: false
+
+implementation:
+  kind: shell
+  cmd: "{cmd}"
+
+trials:
+  success: 0
+  failure: 0
+  last_run: null
+promotion:
+  required_success: 10
+  required_distinct_inputs: 1
+  requires_human_review: true

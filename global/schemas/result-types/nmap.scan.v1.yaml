@@ -1,0 +1,18 @@
+# nmap.scan.v1 result type
+type: object
+properties:
+  hosts:
+    type: array
+    items:
+      type: object
+      properties:
+        ip: { type: string }
+        ports:
+          type: array
+          items:
+            type: object
+            properties:
+              port: { type: integer }
+              protocol: { type: string }
+              service: { type: string }
+              state: { type: string }

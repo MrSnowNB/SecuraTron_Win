@@ -1,0 +1,7 @@
+# fs.read.v1 result type
+type: object
+properties:
+  path: { type: string }
+  content: { type: string }
+  encoding: { type: string, default: "utf-8" }
+  size: { type: integer }

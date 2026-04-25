@@ -1,0 +1,7 @@
+# shell.run.v1 result type
+type: object
+properties:
+  stdout: { type: string }
+  stderr: { type: string }
+  exit_code: { type: integer }
+  duration_ms: { type: number }

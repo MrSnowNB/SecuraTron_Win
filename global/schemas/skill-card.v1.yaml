@@ -1,0 +1,91 @@
+# Skill Card Schema v1
+# Used by Securatron for structured tool definition and composition.
+
+$schema: "http://json-schema.org/draft-07/schema#"
+title: SkillCard
+type: object
+required: [id, version, kind, tier, author, created, inputs, outputs, implementation, trials, promotion]
+properties:
+  id:
+    type: string
+    pattern: "^[a-z0-9_]+\\.[a-z0-9_]+$"
+    description: "Canonical namespaced ID (e.g., kali.nmap)"
+  version:
+    type: integer
+    minimum: 1
+  kind:
+    enum: [atom, molecule]
+  tier:
+    enum: [global, project]
+  author:
+    type: string
+  created:
+    type: string
+    format: date-time
+  description:
+    type: string
+
+  inputs:
+    type: object
+    additionalProperties:
+      type: object
+      required: [type]
+      properties:
+        type: { enum: [string, integer, boolean, array, object] }
+        required: { type: boolean, default: false }
+        default: {}
+        validator: { type: string }
+
+  outputs:
+    type: object
+    required: [type]
+    properties:
+      type:
+        type: string
+        description: "Reference to a result-type schema (e.g., nmap.scan.v1)"
+      artifact_path:
+        type: string
+        description: "Path pattern for session artifacts"
+
+  preconditions:
+    type: array
+    items: { type: string }
+  postconditions:
+    type: array
+    items: { type: string }
+
+  risk:
+    enum: [low, medium, high]
+  side_effects:
+    type: array
+    items: { type: string }
+  reversible:
+    type: boolean
+
+  implementation:
+    type: object
+    required: [kind]
+    properties:
+      kind: { enum: [shell, python, compose] }
+      cmd: { type: string }
+      atoms:
+        type: array
+        items: { type: string }
+      dag:
+        type: object
+
+  trials:
+    type: object
+    required: [success, failure]
+    properties:
+      success: { type: integer, default: 0 }
+      failure: { type: integer, default: 0 }
+      last_run: { anyOf: [{type: string, format: date-time}, {type: "null"}] }
+
+  promotion:
+    type: object
+    required: [required_success, required_distinct_inputs, requires_human_review]
+    properties:
+      required_success: { type: integer, default: 3 }
+      required_distinct_inputs: { type: integer, default: 3 }
+      requires_human_review: { type: boolean, default: false }

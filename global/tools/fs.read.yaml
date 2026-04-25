@@ -1,0 +1,34 @@
+# skill-card v1
+id: fs.read
+version: 1
+kind: atom
+tier: global
+author: human
+created: "2026-04-25T16:52:00-04:00"
+description: "Read the contents of a file from the filesystem."
+
+inputs:
+  path: {type: string, required: true}
+outputs:
+  type: fs.read.v1
+
+preconditions:
+  - "fs.exists(inputs.path)"
+postconditions: []
+
+risk: low
+side_effects: [file_read]
+reversible: true
+
+implementation:
+  kind: shell
+  cmd: "cat {path}"
+
+trials:
+  success: 0
+  failure: 0
+  last_run: null
+promotion:
+  required_success: 5
+  required_distinct_inputs: 5
+  requires_human_review: false
