@@ -55,7 +55,17 @@ def invoke_skill(skill_id: str, inputs: dict, project_id: str, session_id: str) 
         return {"ok": False, "reason": f"gate_failed: {reason}"}
 
     # Phase 3: Actual Dispatch
-    return dispatch(card, inputs, project_id, session_id)
+    result = dispatch(card, inputs, project_id, session_id)
+    
+    # Log execution result to session
+    mem.write_session(session_id, "tool_log.jsonl", {
+        "skill_id": skill_id,
+        "inputs": inputs,
+        "status": "success" if result.get("ok") else "failure",
+        "result_summary": "success" if result.get("ok") else result.get("reason", "failed")
+    })
+    
+    return result
 
 if __name__ == "__main__":
     mcp.run()
