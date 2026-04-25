@@ -111,5 +111,29 @@ def run_shell_atom(card: dict, inputs: dict, session_id: str) -> dict:
     }
 
 def run_python_atom(card: dict, inputs: dict, session_id: str) -> dict:
-    """Execute a python-kind Skill Card (Step 4)."""
-    return {"ok": False, "reason": "python_kind_not_implemented_yet"}
+    """Execute a python-kind Skill Card by calling internal modules."""
+    method_name = card["implementation"]["method"]
+    
+    # Simple registry-free dispatch for now
+    if method_name == "mem.read":
+        from mem import read
+        # Filter inputs to match read() signature
+        result = read(
+            tier=inputs.get("tier"),
+            path=inputs.get("path"),
+            project_id=inputs.get("project_id"),
+            session_id=inputs.get("session_id") or session_id
+        )
+        return {"ok": True, "result": result}
+        
+    elif method_name == "mem.write_session":
+        from mem import write_session
+        write_session(
+            session_id=inputs.get("session_id") or session_id,
+            path=inputs.get("path"),
+            data=inputs.get("data"),
+            author=inputs.get("author", "model")
+        )
+        return {"ok": True, "result": {"status": "written"}}
+        
+    return {"ok": False, "reason": f"unsupported_python_method: {method_name}"}

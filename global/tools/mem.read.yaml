@@ -1,0 +1,36 @@
+# skill-card v1
+id: mem.read
+version: 1
+kind: atom
+tier: global
+author: human
+created: "2026-04-25T16:52:00-04:00"
+description: "Read data from global, project, or session memory tiers."
+
+inputs:
+  tier: {type: string, required: true, validator: "enum:global,project,session"}
+  path: {type: string, required: true}
+  project_id: {type: string, required: false}
+  session_id: {type: string, required: false}
+outputs:
+  type: mem.read.v1
+
+preconditions: []
+postconditions: []
+
+risk: low
+side_effects: [memory_read]
+reversible: true
+
+implementation:
+  kind: python
+  method: "mem.read"
+
+trials:
+  success: 0
+  failure: 0
+  last_run: null
+promotion:
+  required_success: 1
+  required_distinct_inputs: 1
+  requires_human_review: false

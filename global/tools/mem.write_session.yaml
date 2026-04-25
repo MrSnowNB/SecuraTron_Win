@@ -1,0 +1,35 @@
+# skill-card v1
+id: mem.write_session
+version: 1
+kind: atom
+tier: global
+author: human
+created: "2026-04-25T16:52:00-04:00"
+description: "Write data to the active session memory tier."
+
+inputs:
+  path: {type: string, required: true}
+  data: {type: object, required: true}
+  author: {type: string, default: "model"}
+outputs:
+  type: mem.write.v1
+
+preconditions: []
+postconditions: []
+
+risk: low
+side_effects: [memory_write]
+reversible: true
+
+implementation:
+  kind: python
+  method: "mem.write_session"
+
+trials:
+  success: 0
+  failure: 0
+  last_run: null
+promotion:
+  required_success: 1
+  required_distinct_inputs: 1
+  requires_human_review: false
