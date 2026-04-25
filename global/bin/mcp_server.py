@@ -10,6 +10,7 @@ sys.path.append(str(Path(__file__).parent))
 
 import gate
 import mem
+from dispatch import dispatch
 
 mcp = FastMCP("securatron")
 TOOLS_DIR = Path.home() / ".securatron/global/tools"
@@ -53,21 +54,8 @@ def invoke_skill(skill_id: str, inputs: dict, project_id: str, session_id: str) 
         })
         return {"ok": False, "reason": f"gate_failed: {reason}"}
 
-    # Phase 3: Actual Dispatch (Stubbed for now)
-    result = {
-        "ok": False, 
-        "reason": "not_implemented", 
-        "hint": "Phase 3 will wire up the actual shell/python execution."
-    }
-    
-    # Log attempt to session
-    mem.write_session(session_id, "tool_log.jsonl", {
-        "skill_id": skill_id,
-        "inputs": inputs,
-        "status": "not_implemented"
-    })
-    
-    return result
+    # Phase 3: Actual Dispatch
+    return dispatch(card, inputs, project_id, session_id)
 
 if __name__ == "__main__":
     mcp.run()
