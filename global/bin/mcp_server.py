@@ -14,11 +14,15 @@ from dispatch import dispatch
 
 mcp = FastMCP("securatron")
 TOOLS_DIR = Path.home() / ".securatron/global/tools"
+SKILLS_DIR = Path.home() / ".securatron/global/skills"
 
 def load_cards():
-    """Load all skill cards from the global tools directory."""
-    return {c.stem: yaml.safe_load(c.read_text())
+    """Load all skill cards from global tools and skills directories."""
+    cards = {c.stem: yaml.safe_load(c.read_text())
             for c in TOOLS_DIR.glob("*.yaml")}
+    cards.update({c.stem: yaml.safe_load(c.read_text())
+            for c in SKILLS_DIR.glob("*.yaml")})
+    return cards
 
 CARDS = load_cards()
 

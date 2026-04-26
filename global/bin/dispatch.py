@@ -44,6 +44,8 @@ def dispatch(card: dict, inputs: dict, project_id: str, session_id: str) -> dict
             result = run_shell_atom(card, inputs, session_id)
         elif impl["kind"] == "python":
             result = run_python_atom(card, inputs, session_id)
+        elif impl["kind"] == "compose":
+            result = run_molecule(card, inputs, project_id, session_id)
         else:
             return {"ok": False, "reason": f"unsupported_implementation_kind: {impl['kind']}"}
             
@@ -113,27 +115,57 @@ def run_shell_atom(card: dict, inputs: dict, session_id: str) -> dict:
 def run_python_atom(card: dict, inputs: dict, session_id: str) -> dict:
     """Execute a python-kind Skill Card by calling internal modules."""
     method_name = card["implementation"]["method"]
-    
-    # Simple registry-free dispatch for now
     if method_name == "mem.read":
         from mem import read
-        # Filter inputs to match read() signature
-        result = read(
-            tier=inputs.get("tier"),
-            path=inputs.get("path"),
-            project_id=inputs.get("project_id"),
-            session_id=inputs.get("session_id") or session_id
-        )
+        result = read(tier=inputs.get("tier"), path=inputs.get("path"), project_id=inputs.get("project_id"), session_id=inputs.get("session_id") or session_id)
         return {"ok": True, "result": result}
-        
     elif method_name == "mem.write_session":
         from mem import write_session
-        write_session(
-            session_id=inputs.get("session_id") or session_id,
-            path=inputs.get("path"),
-            data=inputs.get("data"),
-            author=inputs.get("author", "model")
-        )
+        write_session(session_id=inputs.get("session_id") or session_id, path=inputs.get("path"), data=inputs.get("data"), author=inputs.get("author", "model"))
         return {"ok": True, "result": {"status": "written"}}
-        
     return {"ok": False, "reason": f"unsupported_python_method: {method_name}"}
+
+def run_molecule(card: dict, inputs: dict, project_id: str, session_id: str) -> dict:
+    """Execute a molecule by orchestrating its DAG of atoms."""
+    dag = card["implementation"]["dag"]
+    steps_results = {}
+    
+    from mcp_server import CARDS
+    
+    for step_id, step_config in dag.items():
+        atom_id = step_config["atom"]
+        if atom_id not in CARDS:
+            return {"ok": False, "reason": f"atom_not_found: {atom_id}", "step": step_id}
+        
+        atom_card = CARDS[atom_id]
+        
+        resolved_inputs = {}
+        for k, v in step_config.get("inputs", {}).items():
+            if isinstance(v, str) and "{{" in v and "}}" in v:
+                # Handle templates within strings (e.g. host_{{inputs.target}}.json)
+                resolved_val = v
+                # Resolve inputs.X
+                for ink, inv in inputs.items():
+                    resolved_val = resolved_val.replace("{{" + f"inputs.{ink}" + "}}", str(inv))
+                # Resolve steps.X.result
+                for step_name, step_res in steps_results.items():
+                    # Handle whole result
+                    resolved_val = resolved_val.replace("{{" + f"steps.{step_name}.result" + "}}", json.dumps(step_res.get("result")))
+                    # Handle result sub-fields (e.g. steps.scan.result.hosts)
+                    if step_res.get("result") and isinstance(step_res["result"], dict):
+                        for resk, resv in step_res["result"].items():
+                            resolved_val = resolved_val.replace("{{" + f"steps.{step_name}.result.{resk}" + "}}", str(resv))
+                resolved_inputs[k] = resolved_val
+            else:
+                resolved_inputs[k] = v
+        
+        res = dispatch(atom_card, resolved_inputs, project_id, session_id)
+        if not res.get("ok"):
+            return {"ok": False, "reason": "step_failed", "step": step_id, "error": res}
+        steps_results[step_id] = res
+        
+    return {
+        "ok": True,
+        "result": steps_results.get(list(dag.keys())[-1], {}).get("result"),
+        "steps": list(steps_results.keys())
+    }

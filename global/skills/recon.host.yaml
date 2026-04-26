@@ -1,0 +1,49 @@
+# skill-card v1
+id: recon.host
+version: 1
+kind: molecule
+tier: global
+author: human
+created: "2026-04-26T12:45:00-04:00"
+description: "Perform host discovery and automatically record findings to session memory."
+
+inputs:
+  target: {type: string, required: true, validator: "rfc1123_host_or_cidr"}
+  flags:  {type: string, default: "-F"}
+
+outputs:
+  type: recon.host.v1
+
+preconditions:
+  - "scope.includes(inputs.target)"
+
+risk: low
+side_effects: [network_probe, memory_write]
+reversible: true
+
+implementation:
+  kind: compose
+  atoms:
+    - kali.nmap
+    - mem.write_session
+  dag:
+    scan:
+      atom: kali.nmap
+      inputs:
+        target: "{{inputs.target}}"
+        flags: "{{inputs.flags}}"
+    record:
+      atom: mem.write_session
+      inputs:
+        path: "findings/host_{{inputs.target}}.json"
+        data: "{{steps.scan.result}}"
+      depends_on: [scan]
+
+trials:
+  success: 0
+  failure: 0
+  last_run: null
+promotion:
+  required_success: 3
+  required_distinct_inputs: 3
+  requires_human_review: false
