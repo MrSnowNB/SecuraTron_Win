@@ -20,6 +20,7 @@ def safe_expand(cmd_template: str, inputs: dict) -> str:
     for key, value in inputs.items():
         placeholder = "{" + key + "}"
         if placeholder in expanded:
+            # Simple escape: wrap in single quotes
             safe_value = str(value).replace("'", "'\\''")
             expanded = expanded.replace(placeholder, safe_value)
     return expanded
@@ -56,6 +57,10 @@ def dispatch(card: dict, inputs: dict, project_id: str, session_id: str) -> dict
             "duration_ms": duration_ms,
             "artifact_path": result.get("artifact_path")
         })
+        # Record reason if provided (e.g. timeout)
+        if "reason" in result and not result.get("ok"):
+             trial_entry["reason"] = result["reason"]
+
         ledger.record_trial(skill_id, trial_entry)
         
         return result
@@ -73,50 +78,78 @@ def dispatch(card: dict, inputs: dict, project_id: str, session_id: str) -> dict
 def run_shell_atom(card: dict, inputs: dict, session_id: str) -> dict:
     """Execute a shell-kind Skill Card."""
     cmd_template = card["implementation"]["cmd"]
-    # Use inputs for command expansion; don't let card['inputs'] override it
-    expand_inputs = dict(inputs)
-    # Merge card schema inputs defaults (for keys not in expand_inputs)
+    
+    # Bug 1 & 2: Fix template variable collision and inject built-ins
+    expand_inputs = {}
+    
+    # 1. Start with card defaults
     for k, v in card.get("inputs", {}).items():
-        if k not in expand_inputs and "default" in v:
+        if isinstance(v, dict) and "default" in v:
             expand_inputs[k] = v["default"]
+            
+    # 2. Override with trial inputs (source of truth)
+    for k, v in inputs.items():
+        expand_inputs[k] = v
+        
+    # 3. Inject automatic built-ins
+    expand_inputs['session'] = session_id
+    expand_inputs['ts'] = str(int(time.time()))
+    
     command = safe_expand(cmd_template, expand_inputs)
     
-    artifact_id = f"{card['id']}-{int(time.time())}"
+    # Create artifact path using same logic as command for consistency
+    artifact_id = f"{card['id']}-{expand_inputs['ts']}"
     artifact_rel_path = f"sessions/{session_id}/artifacts/{artifact_id}.raw"
     artifact_full_path = BASE_DIR / artifact_rel_path
     artifact_full_path.parent.mkdir(parents=True, exist_ok=True)
     
+    # Bug 3: Per-card timeout
+    timeout = card.get('execution', {}).get('timeout_seconds', 60)
+    
     start_run = time.time()
-    process = subprocess.run(
-        command,
-        shell=True,
-        capture_output=True,
-        text=True,
-        timeout=300
-    )
-    duration_ms = int((time.time() - start_run) * 1000)
-    
-    raw_output = f"STDOUT:\n{process.stdout}\n\nSTDERR:\n{process.stderr}\n\nEXIT_CODE: {process.returncode}"
-    artifact_full_path.write_text(raw_output)
-    
-    output_type = card["outputs"]["type"]
-    parsed = parsers.parse(
-        output_type, 
-        process.stdout, 
-        raw_stderr=process.stderr, 
-        exit_code=process.returncode,
-        duration_ms=duration_ms,
-        inputs=inputs
-    )
-    
-    if not parsed["ok"]:
-        return parsed
+    try:
+        process = subprocess.run(
+            command,
+            shell=True,
+            capture_output=True,
+            text=True,
+            timeout=timeout
+        )
+        duration_ms = int((time.time() - start_run) * 1000)
+        
+        # Write raw artifact
+        raw_output = f"STDOUT:\n{process.stdout}\n\nSTDERR:\n{process.stderr}\n\nEXIT_CODE: {process.returncode}"
+        artifact_full_path.write_text(raw_output)
+        
+        output_type = card["outputs"]["type"]
+        parsed = parsers.parse(
+            output_type, 
+            process.stdout, 
+            raw_stderr=process.stderr, 
+            exit_code=process.returncode,
+            duration_ms=duration_ms,
+            inputs=expand_inputs
+        )
+        
+        if not parsed["ok"]:
+            return parsed
 
-    return {
-        "ok": process.returncode == 0,
-        "result": parsed["result"],
-        "artifact_path": artifact_rel_path
-    }
+        return {
+            "ok": process.returncode == 0,
+            "result": parsed["result"],
+            "artifact_path": artifact_rel_path
+        }
+        
+    except subprocess.TimeoutExpired as e:
+        duration_ms = int((time.time() - start_run) * 1000)
+        # Write what we have so far to artifact if possible (though subprocess usually kills it)
+        artifact_full_path.write_text(f"TIMEOUT EXCEEDED ({timeout}s)\nSTDOUT SO FAR:\n{e.stdout}\nSTDERR SO FAR:\n{e.stderr}")
+        return {
+            "ok": False,
+            "reason": "timeout_exceeded",
+            "duration_ms": duration_ms,
+            "artifact_path": artifact_rel_path
+        }
 
 def run_python_atom(card: dict, inputs: dict, session_id: str) -> dict:
     """Execute a python-kind Skill Card by calling internal modules."""
