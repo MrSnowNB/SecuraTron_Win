@@ -1,0 +1,1 @@
+{"metadata": {"timestamp": "2026-04-26T15:56:41.241313", "author": "system", "session_id": "01KQ3DKAM1WTH1YTNP9AXTKHCB"}, "payload": {"skill_id": "kali.nmap", "inputs": {"target": "192.168.1.175", "flags": "-F"}, "status": "success", "result_summary": "success"}}
