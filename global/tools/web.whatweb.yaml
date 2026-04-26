@@ -16,7 +16,7 @@ inputs:
 kind: atom
 outputs:
   artifact_path: '{session}/artifacts/whatweb-{ts}.json'
-  type: shell.run.v1
+  type: whatweb.fingerprint.v1
 postconditions:
 - artifact_exists(outputs.artifact_path)
 - result|length > 0

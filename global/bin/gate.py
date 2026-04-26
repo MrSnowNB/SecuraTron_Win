@@ -8,13 +8,16 @@ BASE_DIR = Path.home() / ".securatron"
 
 def check_scope_match(target: str, allowed_list: list[str]) -> bool:
     """Check if a target matches an entry or is contained within a CIDR range."""
+    # Strip port if present (e.g., 127.0.0.1:80 or example.com:443)
+    clean_target = target.split(":")[0]
+    
     for entry in allowed_list:
-        if target == entry:
+        if clean_target == entry:
             return True
         try:
             # Check for CIDR containment
             if "/" in entry:
-                if ipaddress.ip_address(target) in ipaddress.ip_network(entry):
+                if ipaddress.ip_address(clean_target) in ipaddress.ip_network(entry):
                     return True
         except ValueError:
             continue
@@ -36,7 +39,7 @@ def check_scope(card: dict, inputs: dict, project_id: str, scope_file: str = Non
     target = inputs.get("target") or inputs.get("host") or inputs.get("url")
     if target:
         # Strip port or protocol if present for basic matching
-        clean_target = re.sub(r"^(http|https)://", "", target).split(":")[0]
+        clean_target = re.sub(r"^(http|https)://", "", target)
         return check_scope_match(clean_target, allowed_targets)
         
     return True
@@ -75,6 +78,7 @@ def check_preconditions(card: dict, inputs: dict,
             scope_data = yaml.safe_load(Path(scope_file).read_text())
             allowed = scope_data.get("targets") or scope_data.get("scope") or []
             
+            # The actual fix: use the value provided, check_scope_match handles port stripping
             if not check_scope_match(val, allowed):
                 failures.append(f"Target '{val}' is OUT OF SCOPE")
             continue
@@ -89,12 +93,7 @@ def check_preconditions(card: dict, inputs: dict,
         # 3. artifact_exists(outputs.X)
         match = re.match(r"artifact_exists\(outputs\.(\w+)\)", expr)
         if match:
-            key = match.group(1)
-            # This expects outputs to be evaluated or provided. 
-            # Skill cards often use patterns like "{session}/artifacts/..."
-            # For now, we check if the literal path exists if provided in a hypothetical 'outputs' dict
-            # or skip if not yet generated (as this is a PRE-condition).
-            # If it is a POST-condition, it would be checked after execution.
+            # TODO: Add real postcondition evaluation logic in Phase 4
             continue
 
         # 4. Any unrecognized expression
@@ -124,10 +123,6 @@ def validate_all(card: dict, inputs: dict, project_id: str, session_id: str) -> 
     """Run all gate checks."""
     if not check_secrets(inputs):
         return False, "secret_leak_detected"
-    
-    # Scope check (standalone)
-    if not check_scope(card, inputs, project_id):
-        return False, "out_of_scope"
     
     # Preconditions check
     # Auto-locate scope file if not provided

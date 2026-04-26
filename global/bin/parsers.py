@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 import json
+import re
 
 PARSERS = {}
 
@@ -52,6 +53,30 @@ def parse_nmap_scan(raw_stdout, **kwargs):
         return {"hosts": hosts}
     except Exception as e:
         return {"error": f"xml_parse_failure: {str(e)}", "raw": raw_stdout[:500]}
+
+@register("whatweb.fingerprint.v1")
+def parse_whatweb_fingerprint(raw_stdout, **kwargs):
+    """Parse WhatWeb JSON output from stdout."""
+    # WhatWeb with --log-json /dev/stdout often appends a brief line after the JSON array
+    # We find the JSON array part [...]
+    try:
+        match = re.search(r"(\[.*\])", raw_stdout, re.DOTALL)
+        if not match:
+            return {"error": "no_json_array_found", "raw": raw_stdout[:500]}
+            
+        fingerprints = json.loads(match.group(1))
+        
+        # Primary result is typically the first entry in the array
+        primary = fingerprints[0] if fingerprints else {}
+        
+        return {
+            "fingerprints": fingerprints,
+            "status_code": primary.get("http_status"),
+            "target": primary.get("target"),
+            "raw": raw_stdout
+        }
+    except Exception as e:
+        return {"error": f"json_parse_failure: {str(e)}", "raw": raw_stdout[:500]}
 
 def parse(type_name, raw_stdout, **kwargs):
     """Entry point for parsing raw output into structured data."""
