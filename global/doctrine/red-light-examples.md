@@ -24,3 +24,29 @@ Expected ≠ actual. Red-lighted before cleanup.
 Trust the running server's own telemetry over agent-shell snapshots.
 When an agent recommends a capability-reducing fix, check whether the
 anomaly driving the recommendation is real or an observer artifact.
+
+## Example 2 — 2026-04-26 12:19 EDT — Promoted Atom With Unverified Scope Gate
+
+**Trigger:** Jules architectural review identified check_preconditions
+returns True unconditionally. kali.nmap ran 4 trials with scope
+precondition claiming enforcement that never executed.
+
+**Investigation:**
+- gate.py check_preconditions was a stub (comment: "Placeholder for 
+  a real expression evaluator")
+- All 4 kali.nmap promoter trials passed scope check silently
+- scanme.nmap.org and 127.0.0.1 are legitimate targets, so no actual
+  harm occurred — but the enforcement was theater
+
+**Outcome:**
+- Halted molecule build until gate is real
+- Implemented scope evaluator with CIDR support and unknown-expression
+  hard-fail
+- kali.nmap promotion is NOT revoked (targets were legitimate) but
+  annotated in ledger
+
+**Lesson:**
+A gate that always says PASS is not a gate. 
+Unknown precondition expressions must FAIL, not pass silently.
+Scope enforcement must be the first thing that actually works,
+not the last thing to be implemented.
