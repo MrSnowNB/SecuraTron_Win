@@ -3,3 +3,4 @@ targets:
   - localhost
   - 192.168.1.175
   - 192.168.1.0/24
+  - scanme.nmap.org

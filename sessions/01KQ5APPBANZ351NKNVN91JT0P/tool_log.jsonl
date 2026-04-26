@@ -1,0 +1,1 @@
+{"metadata": {"timestamp": "2026-04-26T16:42:00.426756", "author": "system", "session_id": "01KQ5APPBANZ351NKNVN91JT0P"}, "payload": {"skill_id": "recon.host", "inputs": {"target": "scanme.nmap.org", "flags": "-sV -Pn -T3 --open"}, "status": "gate_refused", "reason": "out_of_scope"}}

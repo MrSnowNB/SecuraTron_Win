@@ -1,0 +1,8 @@
+{
+  "metadata": {
+    "timestamp": "2026-04-26T16:44:22.530669",
+    "author": "model",
+    "session_id": "01KQ5ATCF52BJYNW8784NZ5B36"
+  },
+  "payload": "{\"hosts\": [{\"ip\": \"192.168.1.175\", \"ports\": []}]}"
+}

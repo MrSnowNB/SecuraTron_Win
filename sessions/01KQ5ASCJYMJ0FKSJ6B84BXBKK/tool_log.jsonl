@@ -1,0 +1,1 @@
+{"metadata": {"timestamp": "2026-04-26T16:43:28.877510", "author": "system", "session_id": "01KQ5ASCJYMJ0FKSJ6B84BXBKK"}, "payload": {"skill_id": "recon.host", "inputs": {"target": "localhost", "flags": "-F"}, "status": "success", "result_summary": "success"}}

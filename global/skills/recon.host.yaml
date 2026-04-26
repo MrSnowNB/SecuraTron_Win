@@ -1,0 +1,50 @@
+author: human
+created: '2026-04-26T12:45:00-04:00'
+description: Perform host discovery and automatically record findings to session memory.
+id: recon.host
+implementation:
+  atoms:
+  - kali.nmap
+  - mem.write_session
+  dag:
+    record:
+      atom: mem.write_session
+      depends_on:
+      - scan
+      inputs:
+        data: '{{steps.scan.result}}'
+        path: findings/host_{{inputs.target}}.json
+    scan:
+      atom: kali.nmap
+      inputs:
+        flags: '{{inputs.flags}}'
+        target: '{{inputs.target}}'
+  kind: compose
+inputs:
+  flags:
+    default: -F
+    type: string
+  target:
+    required: true
+    type: string
+    validator: rfc1123_host_or_cidr
+kind: molecule
+outputs:
+  type: recon.host.v1
+preconditions:
+- scope.includes(inputs.target)
+promotion:
+  required_distinct_inputs: 3
+  required_success: 3
+  requires_human_review: false
+reversible: true
+risk: low
+side_effects:
+- network_probe
+- memory_write
+tier: global
+trials:
+  failure: 0
+  last_run: null
+  success: 0
+version: 1
