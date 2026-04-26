@@ -1,0 +1,11 @@
+STDOUT:
+- Nikto v2.6.0
+---------------------------------------------------------------------------
+- ERROR: Unrecognised target host format: [
+- ERROR: Unrecognised target host format: [
+
+
+STDERR:
+
+
+EXIT_CODE: 1

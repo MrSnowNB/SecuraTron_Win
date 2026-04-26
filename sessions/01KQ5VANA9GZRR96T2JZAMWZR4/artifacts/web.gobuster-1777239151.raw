@@ -1,0 +1,10 @@
+STDOUT:
+http://scanme.nmap.org/icons/ (Status: 403) [Size: 288]
+http://scanme.nmap.org/images/ (Status: 200) [Size: 947]
+http://scanme.nmap.org/shared/ (Status: 403) [Size: 289]
+
+
+STDERR:
+
+
+EXIT_CODE: 0

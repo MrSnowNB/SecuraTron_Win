@@ -1,0 +1,61 @@
+[
+   {
+      "end_time" : "2026-04-26 18:39:55 -0400",
+      "host" : "45.33.32.156",
+      "ip" : "45.33.32.156",
+      "port" : 80,
+      "server_banner" : null,
+      "start_time" : "2026-04-26 18:39:39 -0400",
+      "vulnerabilities" : [
+         {
+            "id" : "013587",
+            "method" : "GET",
+            "msg" : "Suggested security header missing: permissions-policy.",
+            "references" : "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy",
+            "url" : "/"
+         },
+         {
+            "id" : "013587",
+            "method" : "GET",
+            "msg" : "Suggested security header missing: referrer-policy.",
+            "references" : "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy",
+            "url" : "/"
+         },
+         {
+            "id" : "013587",
+            "method" : "GET",
+            "msg" : "Suggested security header missing: strict-transport-security.",
+            "references" : "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security",
+            "url" : "/"
+         },
+         {
+            "id" : "013587",
+            "method" : "GET",
+            "msg" : "Suggested security header missing: content-security-policy.",
+            "references" : "https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP",
+            "url" : "/"
+         },
+         {
+            "id" : "013587",
+            "method" : "GET",
+            "msg" : "Suggested security header missing: x-content-type-options.",
+            "references" : "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options",
+            "url" : "/"
+         },
+         {
+            "id" : 999100,
+            "method" : "GET",
+            "msg" : "Uncommon header(s) 'tcn' found, with contents: list.",
+            "references" : "",
+            "url" : "/index"
+         },
+         {
+            "id" : 999965,
+            "method" : "GET",
+            "msg" : "Apache mod_negotiation is enabled with MultiViews, which allows attackers to easily brute force file names. The following alternatives for 'index' were found: index.html.",
+            "references" : "http://www.wisec.it/sectou.php?id=4698ebdc59d15,https://exchange.xforce.ibmcloud.com/vulnerabilities/8275",
+            "url" : "/index"
+         }
+      ]
+   }
+]

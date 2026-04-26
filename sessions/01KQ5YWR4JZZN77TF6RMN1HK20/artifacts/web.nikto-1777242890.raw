@@ -1,0 +1,12 @@
+STDOUT:
+- Nikto v2.6.0
+---------------------------------------------------------------------------
+- ERROR: Unrecognised target host format: [
+- ERROR: Unrecognised target host format: [
+
+
+STDERR:
++ ERROR: Unable to open '{session}/artifacts/nikto-{ts}.json' for write: 
+
+
+EXIT_CODE: 2

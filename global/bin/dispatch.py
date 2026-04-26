@@ -73,7 +73,13 @@ def dispatch(card: dict, inputs: dict, project_id: str, session_id: str) -> dict
 def run_shell_atom(card: dict, inputs: dict, session_id: str) -> dict:
     """Execute a shell-kind Skill Card."""
     cmd_template = card["implementation"]["cmd"]
-    command = safe_expand(cmd_template, inputs)
+    # Use inputs for command expansion; don't let card['inputs'] override it
+    expand_inputs = dict(inputs)
+    # Merge card schema inputs defaults (for keys not in expand_inputs)
+    for k, v in card.get("inputs", {}).items():
+        if k not in expand_inputs and "default" in v:
+            expand_inputs[k] = v["default"]
+    command = safe_expand(cmd_template, expand_inputs)
     
     artifact_id = f"{card['id']}-{int(time.time())}"
     artifact_rel_path = f"sessions/{session_id}/artifacts/{artifact_id}.raw"

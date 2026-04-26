@@ -1,0 +1,28 @@
+[
+   {
+      "end_time" : "2026-04-26 18:16:38 -0400",
+      "host" : null,
+      "ip" : "",
+      "port" : "80",
+      "server_banner" : null,
+      "start_time" : "2026-04-26 18:16:37 -0400",
+      "vulnerabilities" : [
+         {
+            "id" : "FAIL",
+            "method" : "GET",
+            "msg" : "ERROR: Cannot resolve hostname ']' because 'Name or service not known'.",
+            "references" : "",
+            "url" : "/"
+         }
+      ]
+   },
+   {
+      "end_time" : "2026-04-26 18:16:38 -0400",
+      "host" : null,
+      "ip" : "",
+      "port" : "80",
+      "server_banner" : null,
+      "start_time" : "2026-04-26 18:16:38 -0400",
+      "vulnerabilities" : []
+   }
+]
