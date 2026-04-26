@@ -31,3 +31,9 @@
 Single-slot config means no concurrent agent inference.
 Acceptable while Qwen3.6-27B dense is the primary model.
 When migrating to Qwen3.6-35B-A3B-GGUF (MoE), revisit parallel_slots.
+
+## Reserved Args (do not include in llamacpp.args)
+Lemonade manages these flags internally — adding them to args causes HTTP 500:
+--ctx-size, --embedding, --gpu-layers, --jinja, --model, --mmproj, -ngl
+
+Safe to add: -np, --keep, --min-p, --temp, --top-p, --top-k
