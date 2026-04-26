@@ -13,6 +13,7 @@ inputs:
 outputs:
   type: nmap.scan.v1
   artifact_path: "{session}/artifacts/nmap-{ts}.xml"
+  fallback_artifact_path: "~/.securatron/inbox/nmap-{ts}.xml"
 
 preconditions:
   - "scope.includes(inputs.target)"
@@ -30,9 +31,9 @@ implementation:
   cmd: "nmap {flags} -oX - {target}"
 
 trials:
-  success: 0
+  success: 2
   failure: 0
-  last_run: null
+  last_run: "2026-04-26T11:35:00-04:00"
 promotion:
   required_success: 3
   required_distinct_inputs: 3
