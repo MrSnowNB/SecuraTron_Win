@@ -2,6 +2,7 @@ import json
 import hashlib
 from pathlib import Path
 from datetime import datetime
+from ulid import ULID
 
 BASE_DIR = Path.home() / ".securatron"
 LEDGER_DIR = BASE_DIR / "global" / "ledger"
@@ -15,15 +16,33 @@ def record_trial(skill_id: str, entry: dict):
     """Append a trial entry to the skill-specific ledger."""
     ledger_file = LEDGER_DIR / f"{skill_id}.trials.jsonl"
     
-    # Ensure mandatory fields for consistency
-    entry["skill_id"] = skill_id
-    if "timestamp" not in entry:
-        entry["timestamp"] = datetime.utcnow().isoformat() + "Z"
-    if "inputs_hash" not in entry and "inputs_fingerprint" in entry:
-        entry["inputs_hash"] = inputs_hash(entry["inputs_fingerprint"])
-        
+    # Enforce canonical schema
+    canonical = {
+        "trial_id":           entry.get("trial_id") or 
+                              entry.get("ulid") or 
+                              str(ULID()),
+        "ts":                 entry.get("ts") or 
+                              entry.get("timestamp") or 
+                              datetime.utcnow().isoformat() + "Z",
+        "skill_id":           skill_id,
+        "target":             entry.get("target") or
+                              (entry.get("inputs_fingerprint") or {})
+                              .get("target", "unknown"),
+        "result":             entry.get("result") or 
+                              entry.get("status") or 
+                              "unknown",
+        "inputs_hash":        entry.get("inputs_hash") or (
+                              inputs_hash(entry["inputs_fingerprint"])
+                              if "inputs_fingerprint" in entry else None),
+        "inputs_fingerprint": entry.get("inputs_fingerprint", {}),
+    }
+    # Preserve any extra fields caller provided
+    for k, v in entry.items():
+        if k not in canonical:
+            canonical[k] = v
+            
     with open(ledger_file, "a") as f:
-        f.write(json.dumps(entry) + "\n")
+        f.write(json.dumps(canonical) + "\n")
 
 def summarize(skill_id: str) -> dict:
     """Summarize trial results for a given skill."""
@@ -47,7 +66,8 @@ def summarize(skill_id: str) -> dict:
         for line in f:
             try:
                 entry = json.loads(line)
-                if entry.get("status") == "success":
+                # Support both old "status" and new "result" fields
+                if entry.get("result") == "success" or entry.get("status") == "success":
                     summary["success"] += 1
                 else:
                     summary["failure"] += 1
@@ -55,7 +75,8 @@ def summarize(skill_id: str) -> dict:
                 if "inputs_hash" in entry:
                     summary["distinct_inputs"].add(entry["inputs_hash"])
                 
-                summary["last_run"] = entry.get("timestamp")
+                # Support both old "timestamp" and new "ts" fields
+                summary["last_run"] = entry.get("ts") or entry.get("timestamp")
             except json.JSONDecodeError:
                 continue
                 

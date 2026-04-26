@@ -125,6 +125,46 @@ def run_python_atom(card: dict, inputs: dict, session_id: str) -> dict:
         return {"ok": True, "result": {"status": "written"}}
     return {"ok": False, "reason": f"unsupported_python_method: {method_name}"}
 
+def _topo_sort_dag(dag: dict) -> list[str]:
+    """
+    Return step_ids in valid execution order respecting depends_on.
+    Raises ValueError if a cycle is detected or dependency is missing.
+    """
+    # Build adjacency: step -> set of steps it depends on
+    deps = {step_id: set(cfg.get("depends_on", []))
+            for step_id, cfg in dag.items()}
+    
+    # Validate all declared dependencies exist
+    for step_id, step_deps in deps.items():
+        for d in step_deps:
+            if d not in dag:
+                raise ValueError(
+                    f"Step '{step_id}' depends_on '{d}' "
+                    f"which does not exist in DAG"
+                )
+    
+    # Kahn's algorithm
+    in_degree = {s: len(d) for s, d in deps.items()}
+    queue = [s for s, d in in_degree.items() if d == 0]
+    order = []
+    
+    while queue:
+        queue.sort()  # deterministic ordering for equal in-degree
+        node = queue.pop(0)
+        order.append(node)
+        for step_id, step_deps in deps.items():
+            if node in step_deps:
+                in_degree[step_id] -= 1
+                if in_degree[step_id] == 0:
+                    queue.append(step_id)
+    
+    if len(order) != len(dag):
+        visited = set(order)
+        cycle_nodes = [s for s in dag if s not in visited]
+        raise ValueError(f"Cycle detected in DAG involving: {cycle_nodes}")
+    
+    return order
+
 def run_molecule(card: dict, inputs: dict, project_id: str, session_id: str) -> dict:
     """Execute a molecule by orchestrating its DAG of atoms."""
     dag = card["implementation"]["dag"]
@@ -132,7 +172,13 @@ def run_molecule(card: dict, inputs: dict, project_id: str, session_id: str) -> 
     
     from mcp_server import CARDS
     
-    for step_id, step_config in dag.items():
+    try:
+        execution_order = _topo_sort_dag(dag)
+    except ValueError as e:
+        return {"ok": False, "reason": f"dag_invalid: {e}"}
+    
+    for step_id in execution_order:
+        step_config = dag[step_id]
         atom_id = step_config["atom"]
         if atom_id not in CARDS:
             return {"ok": False, "reason": f"atom_not_found: {atom_id}", "step": step_id}
