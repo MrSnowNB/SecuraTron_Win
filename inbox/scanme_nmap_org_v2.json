@@ -1,0 +1,35 @@
+{
+  "hosts": [
+    {
+      "status": "up",
+      "address": "45.33.32.156",
+      "addrtype": "ipv4"
+    }
+  ],
+  "open_ports": [
+    {
+      "port": "22",
+      "protocol": "tcp",
+      "service": "ssh",
+      "version": "OpenSSH 6.6.1p1 Ubuntu 2ubuntu2.13"
+    },
+    {
+      "port": "53",
+      "protocol": "tcp",
+      "service": "domain",
+      "version": "Cloudflare public DNS"
+    },
+    {
+      "port": "80",
+      "protocol": "tcp",
+      "service": "http",
+      "version": "Apache httpd 2.4.7"
+    },
+    {
+      "port": "31337",
+      "protocol": "tcp",
+      "service": "tcpwrapped",
+      "version": ""
+    }
+  ]
+}
