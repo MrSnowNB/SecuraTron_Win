@@ -169,11 +169,9 @@ def _topo_sort_dag(dag: dict) -> list[str]:
     Return step_ids in valid execution order respecting depends_on.
     Raises ValueError if a cycle is detected or dependency is missing.
     """
-    # Build adjacency: step -> set of steps it depends on
     deps = {step_id: set(cfg.get("depends_on", []))
             for step_id, cfg in dag.items()}
     
-    # Validate all declared dependencies exist
     for step_id, step_deps in deps.items():
         for d in step_deps:
             if d not in dag:
@@ -182,13 +180,12 @@ def _topo_sort_dag(dag: dict) -> list[str]:
                     f"which does not exist in DAG"
                 )
     
-    # Kahn's algorithm
     in_degree = {s: len(d) for s, d in deps.items()}
     queue = [s for s, d in in_degree.items() if d == 0]
     order = []
     
     while queue:
-        queue.sort()  # deterministic ordering for equal in-degree
+        queue.sort()
         node = queue.pop(0)
         order.append(node)
         for step_id, step_deps in deps.items():
@@ -227,16 +224,11 @@ def run_molecule(card: dict, inputs: dict, project_id: str, session_id: str) -> 
         resolved_inputs = {}
         for k, v in step_config.get("inputs", {}).items():
             if isinstance(v, str) and "{{" in v and "}}" in v:
-                # Handle templates within strings (e.g. host_{{inputs.target}}.json)
                 resolved_val = v
-                # Resolve inputs.X
                 for ink, inv in inputs.items():
                     resolved_val = resolved_val.replace("{{" + f"inputs.{ink}" + "}}", str(inv))
-                # Resolve steps.X.result
                 for step_name, step_res in steps_results.items():
-                    # Handle whole result
                     resolved_val = resolved_val.replace("{{" + f"steps.{step_name}.result" + "}}", json.dumps(step_res.get("result")))
-                    # Handle result sub-fields (e.g. steps.scan.result.hosts)
                     if step_res.get("result") and isinstance(step_res["result"], dict):
                         for resk, resv in step_res["result"].items():
                             resolved_val = resolved_val.replace("{{" + f"steps.{step_name}.result.{resk}" + "}}", str(resv))
@@ -254,3 +246,54 @@ def run_molecule(card: dict, inputs: dict, project_id: str, session_id: str) -> 
         "result": steps_results.get(list(dag.keys())[-1], {}).get("result"),
         "steps": list(steps_results.keys())
     }
+
+def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="SecuraTron Dispatcher CLI")
+    parser.add_argument("--skill", required=True, help="Skill ID (e.g., web.gobuster)")
+    parser.add_argument("--input", action="append", help="Input in key=value format (repeatable)")
+    parser.add_argument("--project", required=True, help="Project ID")
+    parser.add_argument("--trials", type=int, default=1, help="Number of trials to run")
+    parser.add_argument("--session", help="Session ID (optional)")
+    parser.add_argument("--output-format", choices=["json", "human"], default="human", help="Output format")
+
+    args = parser.parse_args()
+
+    # Parse inputs
+    inputs = {}
+    if args.input:
+        for i in args.input:
+            if "=" in i:
+                k, v = i.split("=", 1)
+                inputs[k] = v
+            else:
+                print(f"Warning: Ignoring malformed input '{i}' (must be key=value)")
+
+    # Load skills
+    from mcp_server import CARDS
+    if args.skill not in CARDS:
+        print(f"Error: Skill '{args.skill}' not found")
+        sys.exit(1)
+    
+    card = CARDS[args.skill]
+    
+    # Handle session
+    import session as sess_mgr
+    session_id = args.session or sess_mgr.open_session(args.project)
+    
+    results = []
+    for t in range(args.trials):
+        if args.output_format == "human":
+            print(f"--- Trial {t+1}/{args.trials} ---")
+        
+        result = dispatch(card, inputs, args.project, session_id)
+        results.append(result)
+        
+        if args.output_format == "human":
+            print(json.dumps(result, indent=2))
+            
+    if args.output_format == "json":
+        print(json.dumps(results if args.trials > 1 else results[0], indent=2))
+
+if __name__ == "__main__":
+    main()
