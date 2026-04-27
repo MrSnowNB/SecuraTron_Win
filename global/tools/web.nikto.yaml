@@ -23,7 +23,7 @@ inputs:
 
 outputs:
   artifact_path: sessions/{session}/artifacts/nikto-{ts}.json
-  type: shell.run.v1
+  type: nikto.scan.v1
 
 preconditions:
 - scope.includes(inputs.target)
