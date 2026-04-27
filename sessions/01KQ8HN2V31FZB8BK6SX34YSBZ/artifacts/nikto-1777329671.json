@@ -1,0 +1,61 @@
+[
+   {
+      "end_time" : "2026-04-27 18:41:31 -0400",
+      "host" : "127.0.0.1",
+      "ip" : "127.0.0.1",
+      "port" : "3000",
+      "server_banner" : null,
+      "start_time" : "2026-04-27 18:41:11 -0400",
+      "vulnerabilities" : [
+         {
+            "id" : 999986,
+            "method" : "GET",
+            "msg" : "Retrieved access-control-allow-origin header: *.",
+            "references" : "",
+            "url" : "/"
+         },
+         {
+            "id" : 999100,
+            "method" : "GET",
+            "msg" : "Uncommon header(s) 'x-recruiting' found, with contents: /#/jobs.",
+            "references" : "",
+            "url" : "/"
+         },
+         {
+            "id" : 999996,
+            "method" : "GET",
+            "msg" : "contains 1 entry which should be manually viewed.",
+            "references" : "https://developer.mozilla.org/en-US/docs/Glossary/Robots.txt",
+            "url" : "/robots.txt"
+         },
+         {
+            "id" : "013587",
+            "method" : "GET",
+            "msg" : "Suggested security header missing: strict-transport-security.",
+            "references" : "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security",
+            "url" : "/"
+         },
+         {
+            "id" : "013587",
+            "method" : "GET",
+            "msg" : "Suggested security header missing: content-security-policy.",
+            "references" : "https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP",
+            "url" : "/"
+         },
+         {
+            "id" : "013587",
+            "method" : "GET",
+            "msg" : "Suggested security header missing: permissions-policy.",
+            "references" : "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy",
+            "url" : "/"
+         },
+         {
+            "id" : "013587",
+            "method" : "GET",
+            "msg" : "Suggested security header missing: referrer-policy.",
+            "references" : "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy",
+            "url" : "/"
+         }
+      ]
+   }
+]
