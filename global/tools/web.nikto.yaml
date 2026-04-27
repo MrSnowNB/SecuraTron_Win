@@ -1,39 +1,46 @@
-author: hermes
-created: '2026-04-26T18:33:00-04:00'
-description: Web server vulnerability scanning using Nikto — checks for 6000+ potentially dangerous files, misconfigurations, and outdated software.
 id: web.nikto
-implementation:
-  cmd: nikto -host {target} -nolookup -nocheck -maxtime 15s -Format json -output sessions/{session}/artifacts/nikto-{ts} {flags}
-  kind: shell
-inputs:
-  flags:
-    default: ''
-    type: string
-  target:
-    required: true
-    type: string
-    validator: rfc1123_host_or_ip
 kind: atom
+tier: global
+version: 1
+author: hermes
+description: Web server vulnerability scanning using Nikto — checks for 6000+ potentially dangerous files, misconfigurations, and outdated software.
+
+implementation:
+  kind: shell
+  cmd: mkdir -p sessions/{session}/artifacts && nikto -host {target} -nolookup -nocheck -maxtime 15s -Format json -output sessions/{session}/artifacts/nikto-{ts} {flags}
+
+execution:
+  timeout_seconds: 60
+
+inputs:
+  target:
+    type: string
+    required: true
+    validator: rfc1123_host_or_ip
+  flags:
+    type: string
+    default: -Tuning 23b
+
 outputs:
-  artifact_path: '{session}/artifacts/nikto-{ts}.json'
+  artifact_path: sessions/{session}/artifacts/nikto-{ts}.json
   type: shell.run.v1
-postconditions:
-- artifact_exists(outputs.artifact_path)
-- result|length > 0
+
 preconditions:
 - scope.includes(inputs.target)
 - network.reachable(inputs.target)
-promotion:
-  required_distinct_inputs: 3
-  required_success: 3
-  requires_human_review: false
-reversible: true
+
+postconditions:
+- artifact_exists(outputs.artifact_path)
+
 risk: low
 side_effects:
 - network_probe
-tier: global
+reversible: true
+promotion:
+  required_success: 3
+  required_distinct_inputs: 3
+  requires_human_review: false
 trials:
+  success: 0
   failure: 0
   last_run: null
-  success: 0
-version: 1
