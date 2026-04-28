@@ -6,6 +6,11 @@ This skill defines the canonical process for building a new SecuraTron Atom from
 - Inspect an existing Atom card as a reference (default: `kali.nmap`).
 - Verify the tool is installed on the host system.
 
+## 1.5 Memory Pre-check (Charter Section V)
+- Use the `memory.precheck` subcommand of `dispatch.py` to identify prior trials or related post-mortems for the target or skill category:
+  `python3 global/bin/dispatch.py memory.precheck --skill {skill_id} --target {target}`
+- Absorb any "gotchas" or failure patterns from the history before authoring.
+
 ## 2. Identification
 Identify the following components for the new Atom:
 - **Runtime:** `shell` or `python`.
