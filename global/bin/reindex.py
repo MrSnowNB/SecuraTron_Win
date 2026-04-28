@@ -35,6 +35,7 @@ CREATE TABLE trials (
   artifact_path TEXT,
   duration_ms   INTEGER,
   inputs_hash   TEXT NOT NULL,
+  hash_origin   TEXT NOT NULL DEFAULT 'original' CHECK(hash_origin IN ('original','inferred','computed')),
   ledger_offset INTEGER NOT NULL
 );"""
 
@@ -68,7 +69,7 @@ CREATE TABLE meta (
   value TEXT NOT NULL
 );"""
 
-CHARTER_VERSION = "1.0"
+CHARTER_VERSION = "1.1"
 
 
 def iso_to_epoch(ts_str):
@@ -161,6 +162,7 @@ def normalize_trial(entry, ledger_file, byte_offset):
         "artifact_path": artifact_path,
         "duration_ms": duration_ms,
         "inputs_hash": inputs_hash,
+        "hash_origin": "original",
         "ledger_offset": byte_offset,
     }
 
@@ -263,8 +265,8 @@ def index_trials(conn, ledger_dir):
                             trial_id, ts, skill_id, skill_version,
                             target, project_id, session_id, result,
                             artifact_path, duration_ms, inputs_hash,
-                            ledger_offset
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                            hash_origin, ledger_offset
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                         (
                             trial["trial_id"],
                             trial["ts"],
@@ -277,6 +279,7 @@ def index_trials(conn, ledger_dir):
                             trial["artifact_path"],
                             trial["duration_ms"],
                             trial["inputs_hash"],
+                            trial["hash_origin"],
                             trial["ledger_offset"],
                         ),
                     )
@@ -327,7 +330,7 @@ def populate_meta(conn, trial_count, pm_count):
     now = int(datetime.datetime.now(datetime.UTC).timestamp()) if hasattr(datetime.datetime, "UTC") else int(time.time())
     
     meta_entries = [
-        ("schema_version", "1.0"),
+        ("schema_version", CHARTER_VERSION),
         ("charter_version", CHARTER_VERSION),
         ("rebuilt_at", str(now)),
         ("source_ledger_count", str(trial_count)),

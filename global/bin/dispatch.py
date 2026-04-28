@@ -309,8 +309,9 @@ def cli_memory_precheck(args):
     prior_target = target_rows["cnt"]
 
     # Prior trials for this skill+target combination (for abort detection)
+    # RP-003: Abort detection includes timeouts (result IN ('failure','timeout'))
     combo_rows = conn.execute(
-        "SELECT COUNT(*) as cnt FROM trials WHERE skill_id = ? AND target = ? AND result = 'failure'",
+        "SELECT COUNT(*) as cnt FROM trials WHERE skill_id = ? AND target = ? AND result IN ('failure','timeout')",
         (skill_id, target)
     ).fetchone()
     recent_failures = combo_rows["cnt"]

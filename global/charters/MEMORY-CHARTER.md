@@ -1,7 +1,7 @@
 ---
 document_type: charter
 document_id: securatron.memory.charter
-version: 1.0
+version: 1.1
 status: living
 authority: binding
 precedence_above: []
@@ -107,6 +107,13 @@ every schema change, every rebuild, every migration.
 
 > **The DB is a cache. The JSONL is the truth. This is non-negotiable.**
 
+### Tier 1 — Version Control Discipline
+
+The warm index (`index.db`, `*.db`, `__pycache__/`, `*.pyc`) is
+**disposable state**. It MUST be excluded from version control via
+`.gitignore`. Committing disposable state to the repository is a
+Section II violation.
+
 ---
 
 ## III. Hard Rules
@@ -142,6 +149,13 @@ every schema change, every rebuild, every migration.
   result returns a `source_path` that resolves to a real file. Memory
   without provenance is hallucination.
 
+- **HR-8 — No Disposable State in Version Control.** The warm index,
+  all `*.db` files, `__pycache__/`, and `*.pyc` MUST be excluded from
+  version control via `.gitignore`. Committing disposable state to the
+  repository is a Section II violation. This is a hard rule — if a
+  `.gitignore` is missing or incomplete, create or repair it before
+  any commit.
+
 ---
 
 ## IV. Tier 1 Schema (Authoritative)
@@ -163,6 +177,7 @@ CREATE TABLE trials (
   artifact_path TEXT,
   duration_ms   INTEGER,
   inputs_hash   TEXT NOT NULL,
+  hash_origin   TEXT NOT NULL DEFAULT 'original' CHECK(hash_origin IN ('original','inferred','computed')),
   ledger_offset INTEGER NOT NULL  -- byte offset in source JSONL for fast lookup
 );
 
@@ -327,6 +342,44 @@ version or rejects it.
 
 ---
 
+### RP-001: Add `.gitignore` enforcement to Section II
+**Proposed by:** operator
+**Date:** 2026-04-27
+**Section affected:** Section II (Tier 1 — Version Control Discipline), Section III (HR-8)
+**Problem:** Disposable state (`index.db`, `*.db`, `__pycache__/`, `*.pyc`) may be committed to git. No `.gitignore` exists.
+**Proposed change:** Add "Tier 1 — Version Control Discipline" subsection to Section II. Add HR-8 to Section III: "No Disposable State in Version Control." Create `~/.securatron/.gitignore`.
+**Justification:** HR-2 states the DB is disposable and rebuildable. Committing it violates the principle that the JSONL is the truth and the DB is a cache.
+**Status:** accepted
+
+### RP-002: Backfill semantics for `inputs_hash`
+**Proposed by:** operator
+**Date:** 2026-04-27
+**Section affected:** Section IV (Tier 1 Schema)
+**Problem:** `inputs_hash` has no provenance semantics — cannot distinguish between hashes from ledger entries versus inferred/computed values.
+**Proposed change:** Add `hash_origin` column to trials table with CHECK constraint on ('original','inferred','computed'). Reindex sets `hash_origin='original'`. Dedup queries filter on `hash_origin='original'`.
+**Justification:** Enables audit trail for hash provenance and prevents false dedup on computed hashes.
+**Status:** accepted
+
+### RP-003: Abort-detection includes timeouts
+**Proposed by:** operator
+**Date:** 2026-04-27
+**Section affected:** Section V (The Restore Gate)
+**Problem:** Abort detection only checks `result = 'failure'`, missing `result = 'timeout'` which is also an abort condition.
+**Proposed change:** Change the abort-detection query to `result IN ('failure','timeout')` in `memory.precheck`.
+**Justification:** Timeouts are functionally equivalent to failures from a pattern-repetition standpoint — both indicate the atom-target combination is problematic.
+**Status:** accepted
+
+### RP-004: Review prompt must check forbidden actions
+**Proposed by:** operator
+**Date:** 2026-04-27
+**Section affected:** Section VIII (Forbidden Actions)
+**Problem:** When a skill card requires human review, the review prompt does not enumerate Section VIII violations for the reviewer to check.
+**Proposed change:** Add `REVIEW_PROMPT` constant in `promote.py` that explicitly enumerates all Section VIII violations (including HR-8 warm-tier-in-git) as a checklist displayed to the human reviewer.
+**Justification:** The reviewer needs a concrete checklist tied to Charter violations, not just a generic "requires review" message.
+**Status:** accepted
+
+---
+
 ## X. Charter Provenance
 
 This Charter draws from prior architecture work documented in the
@@ -355,4 +408,4 @@ None of those happen until v1 is fulfilled.
 
 ---
 
-— End of Charter v1.0 —
+— End of Charter v1.1 —
