@@ -1,0 +1,36 @@
+2026-04-27 21:40:19,650 INFO === PHASE START: Ticket Generation (PHASE-3) ===
+2026-04-27 21:40:19,651 INFO   PASS: Valid ticket written to tmp/
+2026-04-27 21:40:19,651 INFO   PASS: Ticket moved to new/ (atomic publish)
+2026-04-27 21:40:19,651 INFO   PASS: Ticket file is complete JSON after mv
+2026-04-27 21:40:19,651 INFO   PASS: Invalid ticket written to new/
+2026-04-27 21:40:19,651 INFO   PASS: Destructive ticket with human_gate written to new/
+2026-04-27 21:40:19,651 INFO   PASS: Urgent ticket written to inbox.urgent/new/
+2026-04-27 21:40:19,651 INFO === PHASE END: Ticket Generation (pass) ===
+2026-04-27 21:40:19,651 INFO Results written to: /home/mark/.securatron/logs/tests/phase-03_results.json
+2026-04-27 21:41:05,620 INFO === PHASE START: Ticket Generation (PHASE-3) ===
+2026-04-27 21:41:05,621 INFO   PASS: Valid ticket written to tmp/
+2026-04-27 21:41:05,621 INFO   PASS: Ticket moved to new/ (atomic publish)
+2026-04-27 21:41:05,621 INFO   PASS: Ticket file is complete JSON after mv
+2026-04-27 21:41:05,621 INFO   PASS: Invalid ticket written to new/
+2026-04-27 21:41:05,621 INFO   PASS: Destructive ticket with human_gate written to new/
+2026-04-27 21:41:05,621 INFO   PASS: Urgent ticket written to inbox.urgent/new/
+2026-04-27 21:41:05,621 INFO === PHASE END: Ticket Generation (pass) ===
+2026-04-27 21:41:05,621 INFO Results written to: /home/mark/.securatron/logs/tests/phase-03_results.json
+2026-04-27 21:41:56,621 INFO === PHASE START: Ticket Generation (PHASE-3) ===
+2026-04-27 21:41:56,622 INFO   PASS: Valid ticket written to tmp/
+2026-04-27 21:41:56,622 INFO   PASS: Ticket moved to new/ (atomic publish)
+2026-04-27 21:41:56,622 INFO   PASS: Ticket file is complete JSON after mv
+2026-04-27 21:41:56,622 INFO   PASS: Invalid ticket written to new/
+2026-04-27 21:41:56,622 INFO   PASS: Destructive ticket with human_gate written to new/
+2026-04-27 21:41:56,622 INFO   PASS: Urgent ticket written to inbox.urgent/new/
+2026-04-27 21:41:56,622 INFO === PHASE END: Ticket Generation (pass) ===
+2026-04-27 21:41:56,622 INFO Results written to: /home/mark/.securatron/logs/tests/phase-03_results.json
+2026-04-27 21:46:54,372 INFO === PHASE START: Ticket Generation (PHASE-3) ===
+2026-04-27 21:46:54,373 INFO   PASS: Valid ticket written to tmp/
+2026-04-27 21:46:54,373 INFO   PASS: Ticket moved to new/ (atomic publish)
+2026-04-27 21:46:54,373 INFO   PASS: Ticket file is complete JSON after mv
+2026-04-27 21:46:54,373 INFO   PASS: Invalid ticket written to new/
+2026-04-27 21:46:54,373 INFO   PASS: Destructive ticket with human_gate written to new/
+2026-04-27 21:46:54,373 INFO   PASS: Urgent ticket written to inbox.urgent/new/
+2026-04-27 21:46:54,373 INFO === PHASE END: Ticket Generation (pass) ===
+2026-04-27 21:46:54,373 INFO Results written to: /home/mark/.securatron/logs/tests/phase-03_results.json

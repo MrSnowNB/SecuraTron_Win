@@ -2,13 +2,13 @@
   "ticket_id": "TICK-0F16930A",
   "source": "agent",
   "skill": "web.nikto",
-  "target": "scanme.nmap.org",
   "priority": "normal",
-  "created_at": "2026-04-27T21:00:00Z",
+  "created_at": "2026-04-28T01:00:00Z",
   "status": "completed",
-  "human_gate": false,
-  "destructive": false,
   "inputs": {
-    "threads": 5
-  }
+    "target": "192.168.1.1"
+  },
+  "destructive": true,
+  "human_gate": true,
+  "dispatch_stub": true
 }

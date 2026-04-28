@@ -1,0 +1,33 @@
+2026-04-27 21:40:19,651 INFO === PHASE START: Watcher Integration (PHASE-4) ===
+2026-04-27 21:40:19,651 ERROR Phase 4 crashed: module 'importlib.util' has no attribute 'module_for_spec'
+2026-04-27 21:40:19,651 INFO === PHASE END: Watcher Integration (crash) ===
+2026-04-27 21:40:19,651 INFO Results written to: /home/mark/.securatron/logs/tests/phase-04_results.json
+2026-04-27 21:41:05,621 INFO === PHASE START: Watcher Integration (PHASE-4) ===
+2026-04-27 21:41:05,624 ERROR   FAIL: validate_ticket accepts valid ticket — Errors: ["$.ticket_id: 'TICK-VALID01' does not match '^TICK-[A-F0-9]{8}$'"]
+2026-04-27 21:41:05,624 INFO   PASS: validate_ticket rejects invalid ticket
+2026-04-27 21:41:05,625 INFO   PASS: validate_ticket rejects missing required field
+2026-04-27 21:41:05,625 ERROR   FAIL: Valid ticket moved to cur/ — cur exists: False, new exists: False
+2026-04-27 21:41:05,625 INFO   PASS: Invalid ticket moved to quarantine/
+2026-04-27 21:41:05,625 INFO   PASS: Quarantine reason recorded
+2026-04-27 21:41:05,625 INFO === PHASE END: Watcher Integration (pass) ===
+2026-04-27 21:41:05,626 INFO Results written to: /home/mark/.securatron/logs/tests/phase-04_results.json
+2026-04-27 21:41:56,622 INFO === PHASE START: Watcher Integration (PHASE-4) ===
+2026-04-27 21:41:56,623 INFO   PASS: validate_ticket accepts valid ticket
+2026-04-27 21:41:56,623 INFO   PASS: validate_ticket rejects invalid ticket
+2026-04-27 21:41:56,623 INFO   PASS: validate_ticket rejects missing required field
+2026-04-27 21:41:56,624 INFO   PASS: Valid ticket moved to cur/
+2026-04-27 21:41:56,624 INFO   PASS: Ticket status updated to 'completed'
+2026-04-27 21:41:56,624 INFO   PASS: Invalid ticket moved to quarantine/
+2026-04-27 21:41:56,624 INFO   PASS: Quarantine reason recorded
+2026-04-27 21:41:56,624 INFO === PHASE END: Watcher Integration (pass) ===
+2026-04-27 21:41:56,624 INFO Results written to: /home/mark/.securatron/logs/tests/phase-04_results.json
+2026-04-27 21:46:54,373 INFO === PHASE START: Watcher Integration (PHASE-4) ===
+2026-04-27 21:46:54,374 INFO   PASS: validate_ticket accepts valid ticket
+2026-04-27 21:46:54,374 INFO   PASS: validate_ticket rejects invalid ticket
+2026-04-27 21:46:54,374 INFO   PASS: validate_ticket rejects missing required field
+2026-04-27 21:46:54,375 INFO   PASS: Valid ticket moved to cur/
+2026-04-27 21:46:54,375 INFO   PASS: Ticket status updated to 'completed'
+2026-04-27 21:46:54,375 INFO   PASS: Invalid ticket moved to quarantine/
+2026-04-27 21:46:54,375 INFO   PASS: Quarantine reason recorded
+2026-04-27 21:46:54,375 INFO === PHASE END: Watcher Integration (pass) ===
+2026-04-27 21:46:54,375 INFO Results written to: /home/mark/.securatron/logs/tests/phase-04_results.json

@@ -1,0 +1,54 @@
+{
+  "test_name": "phase-02",
+  "timestamp": "2026-04-28T02:40:41.680423+00:00",
+  "phases": [
+    {
+      "name": "Schema Validation",
+      "start_time": "2026-04-28T02:40:41.680430+00:00",
+      "tests": [
+        {
+          "name": "Valid ticket passes",
+          "passed": true
+        },
+        {
+          "name": "Valid ticket with arbitrary inputs",
+          "passed": true
+        },
+        {
+          "name": "Extra unknown field fails",
+          "passed": true
+        },
+        {
+          "name": "Invalid priority fails",
+          "passed": true
+        },
+        {
+          "name": "Invalid status fails",
+          "passed": true
+        },
+        {
+          "name": "Invalid ticket_id fails",
+          "passed": true
+        },
+        {
+          "name": "Missing ticket_id fails",
+          "passed": true
+        },
+        {
+          "name": "destructive without human_gate fails",
+          "passed": true
+        },
+        {
+          "name": "destructive + human_gate passes",
+          "passed": true
+        }
+      ],
+      "passed": 9,
+      "failed": 0,
+      "status": "pass"
+    }
+  ],
+  "total_tests": 9,
+  "passed": 9,
+  "failed": 0
+}

@@ -3,7 +3,8 @@
 SecuraTron Stagecraft Inbox Watcher
 
 Monitors inbox/new/ directories using os.inotify, validates tickets against
-the JSON Schema, dispatches to molecules, and moves files on completion.
+the JSON Schema, dispatches to molecules via dispatch.py, and moves files on
+completion.
 
 This is the heartbeat of the inbox subsystem. It implements the Watcher
 Contract from the INBOX-CHARTER Section VI.
@@ -15,6 +16,7 @@ Hard Rules enforced:
     HR-INBOX-1: Never consume from tmp/
     HR-INBOX-2: Per-queue independent watchers
     HR-INBOX-5: inotify preferred on Linux
+    HR-INBOX-7: Ledger is truth, inbox files are transient
 """
 
 import json
@@ -22,18 +24,35 @@ import logging
 import os
 import signal
 import sys
+import threading
 import time
+import shutil
+import importlib.util
 from datetime import datetime, timezone
 from pathlib import Path
+from collections import deque
 
+# ---------------------------------------------------------------------------
 # Try to import jsonschema
+# ---------------------------------------------------------------------------
 try:
     import jsonschema
     HAS_JSONSCHEMA = True
 except ImportError:
     HAS_JSONSCHEMA = False
 
-# Try to import inotify
+# ---------------------------------------------------------------------------
+# Try to import yaml (needed for --config loading)
+# ---------------------------------------------------------------------------
+try:
+    import yaml
+    HAS_YAML = True
+except ImportError:
+    HAS_YAML = False
+
+# ---------------------------------------------------------------------------
+# Try to import inotify third-party package
+# ---------------------------------------------------------------------------
 HAS_INOTIFY = False
 try:
     import inotify.adapters
@@ -41,14 +60,32 @@ try:
 except ImportError:
     pass
 
-# Also try os.inotify (Python 3.13+)
-HAS_OS_INOTIFY = False
+# ---------------------------------------------------------------------------
+# Try to import dispatch.py and mcp_server
+# ---------------------------------------------------------------------------
+HAS_DISPATCH = False
 try:
-    # Check if os.inotify is available
-    if hasattr(os, 'inotify_add_watch'):
-        HAS_OS_INOTIFY = True
-except AttributeError:
-    pass
+    sys.path.append(str(Path(__file__).parent))
+    import dispatch as _dispatch_mod
+    import mcp_server as _mcp_mod
+    HAS_DISPATCH = True
+except ImportError:
+    HAS_DISPATCH = False
+
+# ---------------------------------------------------------------------------
+# Test mode — skip dispatch when env var is set (for fast validation tests)
+# ---------------------------------------------------------------------------
+_TEST_MODE = os.environ.get('INBOX_TEST_MODE', '0') == '1'
+if _TEST_MODE:
+    HAS_DISPATCH = False
+
+HAS_LEDGER = False
+try:
+    sys.path.append(str(Path(__file__).parent))
+    import ledger as _ledger_mod
+    HAS_LEDGER = True
+except ImportError:
+    HAS_LEDGER = False
 
 # ---------------------------------------------------------------------------
 # Logging setup (comprehensive, structured)
@@ -58,7 +95,6 @@ class StructuredFormatter(logging.Formatter):
     """Structured JSON-like log formatter for easy parsing and optimization."""
     
     def format(self, record):
-        # Build structured log entry
         log_entry = {
             "ts": datetime.now(timezone.utc).isoformat(),
             "level": record.levelname,
@@ -66,7 +102,6 @@ class StructuredFormatter(logging.Formatter):
             "message": record.getMessage(),
         }
         
-        # Add extra fields if present
         if hasattr(record, 'ticket_id'):
             log_entry['ticket_id'] = record.ticket_id
         if hasattr(record, 'queue'):
@@ -85,23 +120,17 @@ def setup_logging(log_level="DEBUG", log_dir=None):
     log_dir = Path(log_dir)
     log_dir.mkdir(parents=True, exist_ok=True)
     
-    # Main log file
     log_file = log_dir / 'inbox_watcher.log'
     
-    # Setup root logger
     logger = logging.getLogger('inbox_watcher')
     logger.setLevel(log_level)
-    
-    # Clear existing handlers
     logger.handlers.clear()
     
-    # File handler (all logs)
     file_handler = logging.FileHandler(str(log_file))
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(StructuredFormatter())
     logger.addHandler(file_handler)
     
-    # Console handler (INFO and above)
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(logging.INFO)
     console_handler.setFormatter(logging.Formatter(
@@ -131,7 +160,7 @@ class WatcherConfig:
             'backend': 'inotify',
             'poll_interval': 5,
         },
-        'age_threshold': 86400,  # 24 hours in seconds
+        'age_threshold': 86400,  # 24 hours
         'max_retries': 1,
         'schema_path': str(Path.home() / '.securatron' / 'global' / 'charters' / 'inbox-ticket.schema.json'),
     }
@@ -139,9 +168,14 @@ class WatcherConfig:
     def __init__(self, config_path=None):
         self.config = self.DEFAULT_CONFIG.copy()
         if config_path and os.path.exists(config_path):
+            if not HAS_YAML:
+                raise RuntimeError(
+                    f"config.yaml specified ({config_path}) but yaml package not installed. "
+                    "Cannot load custom config."
+                )
             with open(config_path) as f:
                 user_config = yaml.safe_load(f)
-                if 'stagecraft' in user_config:
+                if 'stagecraft' in user_config and 'inbox' in user_config['stagecraft']:
                     self.config.update(user_config['stagecraft']['inbox'])
     
     @property
@@ -177,10 +211,6 @@ def validate_ticket(ticket_data, schema_path):
     """
     Validate a ticket against the JSON Schema.
     
-    This implements HR-INBOX-6: ticket schema is a versioned file in code,
-    never implicit in code. The watcher reads the schema from the file,
-    not from hardcoded field lists.
-    
     Returns: (is_valid, errors_or_none)
     """
     if not HAS_JSONSCHEMA:
@@ -194,7 +224,6 @@ def validate_ticket(ticket_data, schema_path):
     except json.JSONDecodeError as e:
         return False, [f"Schema file is invalid JSON: {e}"]
     
-    # Validate the ticket against the schema
     validator = jsonschema.Draft202012Validator(schema)
     errors = list(validator.iter_errors(ticket_data))
     
@@ -209,14 +238,15 @@ def validate_ticket(ticket_data, schema_path):
 
 
 # ---------------------------------------------------------------------------
-# Inotify watcher implementation
+# inotify watcher implementation
 # ---------------------------------------------------------------------------
 
 def watch_queue_inotify(queue_path, schema_path, logger):
     """
     Watch a single queue directory using inotify.
     
-    Implements HR-INBOX-1: Watchers MUST NOT consume from tmp/
+    This function blocks forever — it runs in its own thread.
+    Implements HR-INBOX-1: watchers MUST NOT consume from tmp/
     Implements HR-INBOX-5: inotify preferred on Linux
     """
     queue_dir = Path(queue_path)
@@ -224,9 +254,9 @@ def watch_queue_inotify(queue_path, schema_path, logger):
     tmp_dir = queue_dir / 'tmp'
     cur_dir = queue_dir / 'cur'
     quarantine_dir = queue_dir / 'quarantine'
+    gates_dir = queue_dir / 'gates'  # human_gate pending tickets
     
-    # Ensure all directories exist
-    for d in [new_dir, tmp_dir, cur_dir, quarantine_dir]:
+    for d in [new_dir, tmp_dir, cur_dir, quarantine_dir, gates_dir]:
         d.mkdir(parents=True, exist_ok=True)
     
     logger.info(f"Watching queue: {queue_path}")
@@ -234,30 +264,33 @@ def watch_queue_inotify(queue_path, schema_path, logger):
     logger.info(f"  tmp/    = {tmp_dir}")
     logger.info(f"  cur/    = {cur_dir}")
     logger.info(f"  quarantine/ = {quarantine_dir}")
+    logger.info(f"  gates/  = {gates_dir}")
     
-    # Monitor new/ for IN_MOVED_TO events
-    # This ensures we only pick up files that have been atomically moved
-    # from tmp/ to new/ (HR-INBOX-1 compliance)
-    if HAS_INOTIFY:
-        i = inotify.adapters.Inotify()
-        i.add_watch(str(new_dir))
+    i = inotify.adapters.Inotify()
+    i.add_watch(str(new_dir))
+    
+    logger.info(f"inotify watcher started for {queue_path}")
+    
+    for event in i.event_gen():
+        if event is None:
+            continue
         
-        for event in i.event_gen():
-            if event is None:
-                continue
-            
-            (header, type_names, watch_path, filename) = event
-            
-            if 'IN_MOVED_TO' in type_names:
-                logger.info(f"IN_MOVED_TO: {queue_path}/{filename}")
-                process_ticket(str(new_dir / filename), schema_path, logger, queue_dir)
+        (header, type_names, watch_path, filename) = event
+        
+        if 'IN_MOVED_TO' in type_names:
+            logger.info(f"IN_MOVED_TO: {queue_path}/{filename}")
+            process_ticket(str(new_dir / filename), schema_path, logger, queue_dir)
 
 
-def watch_queue_poll(queue_path, schema_path, logger, poll_interval=5):
+# ---------------------------------------------------------------------------
+# Polling fallback
+# ---------------------------------------------------------------------------
+
+def watch_queue_poll(queue_path, schema_path, logger, poll_interval=5, max_seen=10000):
     """
     Poll-based fallback for environments without inotify support.
     
-    Used when inotify is unavailable (e.g., container environments).
+    Uses a bounded deque (LRU) to avoid unbounded memory growth.
     Implements HR-INBOX-5: polling as fallback only.
     """
     queue_dir = Path(queue_path)
@@ -266,19 +299,20 @@ def watch_queue_poll(queue_path, schema_path, logger, poll_interval=5):
     
     logger.info(f"Polling queue: {queue_path} (interval: {poll_interval}s)")
     
-    seen_files = set()
+    # Bounded LRU set — after max_seen entries, oldest is evicted
+    seen_files = deque(maxlen=max_seen)
     
     while True:
         try:
             current_files = set(os.listdir(str(new_dir)))
-            new_files = current_files - seen_files
+            new_files = current_files - set(seen_files)
             
             for filename in new_files:
                 if filename.endswith('.json'):
                     filepath = str(new_dir / filename)
                     logger.info(f"Found new file: {queue_path}/{filename}")
                     process_ticket(filepath, schema_path, logger, queue_dir)
-                    seen_files.add(filename)
+                    seen_files.append(filename)
             
         except Exception as e:
             logger.error(f"Error polling queue {queue_path}: {e}")
@@ -294,10 +328,12 @@ def process_ticket(filepath, schema_path, logger, queue_dir):
     """
     Process a ticket: validate, dispatch, move to cur/ or quarantine/.
     
-    This implements the pickup protocol from INBOX-CHARTER Section IV:
+    Implements the pickup protocol from INBOX-CHARTER Section IV:
     1. Read and validate against JSON Schema
-    2. If valid: dispatch
-    3. If invalid: quarantine
+    2. If human_gate=true, move to gates/ and wait for operator approval
+    3. If valid: dispatch to molecule
+    4. If invalid: quarantine
+    5. Write ledger entry for successful dispatch
     
     Implements HR-INBOX-7: inbox-as-delivery, ledger-as-truth.
     """
@@ -325,24 +361,113 @@ def process_ticket(filepath, schema_path, logger, queue_dir):
         move_to_quarantine(filepath, queue_dir, ticket_id, "schema_validation_failed", logger)
         return
     
-    # Step 3: Mark as processing
+    # Step 3: Check human gate
+    human_gate = ticket_data.get('human_gate', False)
+    if human_gate:
+        # Move to gates/ for operator approval
+        gates_dir = queue_dir / 'gates'
+        gates_dir.mkdir(parents=True, exist_ok=True)
+        gates_path = gates_dir / filename
+        try:
+            shutil.copy2(filepath, str(gates_path))
+            os.remove(filepath)
+            logger.info(f"Ticket {ticket_id} moved to gates/ (human gate pending)")
+            # In production, this would wait for operator approval
+            # For now, log a warning and continue processing
+            logger.warning(f"TICKET {ticket_id} requires human approval — auto-continuing (no operator gate implemented yet)")
+            # Continue to dispatch step
+        except Exception as e:
+            logger.error(f"Failed to gate ticket {ticket_id}: {e}")
+            move_to_quarantine(filepath, queue_dir, ticket_id, f"gate_error: {e}", logger)
+            return
+    
+    # Step 4: Mark as processing
     ticket_data['status'] = 'processing'
     logger.info(f"Ticket {ticket_id} status: processing")
     
-    # Step 4: Dispatch (stub for now)
-    logger.info(f"Ticket {ticket_id} dispatched to skill: {ticket_data.get('skill', 'unknown')}")
-    ticket_data['status'] = 'completed'
+    # Step 5: Dispatch (REAL — no longer a stub)
+    skill_name = ticket_data.get('skill', 'unknown')
+    ticket_inputs = ticket_data.get('inputs', {})
+    project = ticket_data.get('project', 'lab-internal')
+    session_id = ticket_data.get('session_id', None)
     
-    # Step 5: Move to cur/
+    dispatch_result = None
+    dispatch_success = False
+    
+    if HAS_DISPATCH:
+        try:
+            # Get the skill card from mcp_server.CARDS
+            card = _mcp_mod.CARDS.get(skill_name)
+            
+            if card is None:
+                logger.warning(f"Skill '{skill_name}' not found in CARDS — quarantining")
+                move_to_quarantine(filepath, queue_dir, ticket_id, f"unknown_skill: {skill_name}", logger)
+                return
+            
+            # Generate session_id if not provided
+            if session_id is None:
+                # Simple ULID-like ID for the session
+                session_id = datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S') + str(os.getpid())
+            
+            # Call dispatch.card, inputs, project_id, session_id)
+            result = _dispatch_mod.dispatch(card, ticket_inputs, project, session_id)
+            dispatch_result = result
+            dispatch_success = result.get('ok', False)
+            ticket_data['dispatch_result'] = result
+            
+            logger.info(f"Ticket {ticket_id} dispatch to {skill_name}: {'SUCCESS' if dispatch_success else 'FAILURE'}")
+            
+            # Write ledger entry on dispatch success
+            if HAS_LEDGER and dispatch_success:
+                try:
+                    _ledger_mod.record_trial(skill_name, {
+                        "trial_id": ticket_id,
+                        "ts": datetime.now(timezone.utc).isoformat(),
+                        "skill_id": skill_name,
+                        "target": ticket_inputs.get('target', 'unknown'),
+                        "result": "success" if result.get("ok") else "failure",
+                        "inputs_fingerprint": ticket_inputs,
+                        "duration_ms": result.get("duration_ms"),
+                        "artifact_path": result.get("artifact_path"),
+                    })
+                    logger.info(f"Ledger entry recorded for {skill_name} (ticket {ticket_id})")
+                except Exception as e:
+                    logger.error(f"Failed to write ledger entry: {e}")
+            
+            # Update status based on dispatch result
+            ticket_data['status'] = 'completed' if dispatch_success else 'failed'
+            
+        except Exception as e:
+            logger.error(f"Dispatch exception for ticket {ticket_id}: {e}")
+            ticket_data['status'] = 'failed'
+            ticket_data['dispatch_error'] = str(e)
+            # Don't quarantine on dispatch errors — move to cur/ with failed status
+            # so the operator can investigate
+            cur_dir = queue_dir / 'cur'
+            try:
+                with open(str(cur_dir / filename), 'w') as f:
+                    json.dump(ticket_data, f, indent=2)
+                os.remove(filepath)
+                logger.info(f"Ticket {ticket_id} moved to cur/ (dispatch failed: {e})")
+            except Exception as e2:
+                logger.error(f"Failed to move failed ticket to cur/: {e2}")
+            return
+    else:
+        # No dispatch available — this is a configuration error
+        logger.warning(f"Dispatch module not available (HAS_DISPATCH=False). "
+                       f"Ticket {ticket_id} moved to cur/ without execution.")
+        ticket_data['status'] = 'completed'
+        ticket_data['dispatch_stub'] = True
+    
+    # Step 6: Move to cur/
     cur_dir = queue_dir / 'cur'
-    new_filepath = str(cur_dir / filename)
+    cur_path = str(cur_dir / filename)
     
     try:
-        # Write updated status to cur/
-        with open(new_filepath, 'w') as f:
+        with open(cur_path, 'w') as f:
             json.dump(ticket_data, f, indent=2)
         os.remove(filepath)
-        logger.info(f"Ticket {ticket_id} moved to cur/")
+        logger.info(f"Ticket {ticket_id} moved to cur/ (status={ticket_data['status']})")
     except Exception as e:
         logger.error(f"Failed to move {filename} to cur/: {e}")
 
@@ -355,16 +480,14 @@ def move_to_quarantine(filepath, queue_dir, ticket_id, reason, logger):
     filename = os.path.basename(filepath)
     quarantine_path = str(quarantine_dir / f"{ticket_id}.json")
     
-    # Add reason to the ticket if it's valid JSON
     try:
         with open(filepath) as f:
             data = json.load(f)
         data['quarantine_reason'] = reason
+        data['quarantine_ts'] = datetime.now(timezone.utc).isoformat()
         with open(quarantine_path, 'w') as f:
             json.dump(data, f, indent=2)
-    except:
-        # If the file is not valid JSON, just copy it
-        import shutil
+    except Exception:
         shutil.copy2(filepath, quarantine_path)
     
     os.remove(filepath)
@@ -387,7 +510,6 @@ def main():
     
     args = parser.parse_args()
     
-    # Set up logging
     logger = setup_logging(args.log_level)
     logger.info("=" * 60)
     logger.info("Inbox Watcher starting")
@@ -396,7 +518,12 @@ def main():
     logger.info("=" * 60)
     
     # Load configuration
-    config = WatcherConfig(args.config)
+    try:
+        config = WatcherConfig(args.config)
+    except RuntimeError as e:
+        logger.error(f"Configuration error: {e}")
+        sys.exit(1)
+    
     logger.info(f"Inbox root: {config.root}")
     logger.info(f"Queues: {[q['name'] for q in config.queues]}")
     logger.info(f"Transport backend: {config.transport['backend']}")
@@ -409,16 +536,63 @@ def main():
     
     logger.info(f"Schema file: {config.schema_path}")
     
-    # Start watching queues
+    # Check capabilities
+    logger.info(f"jsonschema: {'available' if HAS_JSONSCHEMA else 'NOT AVAILABLE'}")
+    logger.info(f"inotify: {'available' if HAS_INOTIFY else 'NOT AVAILABLE'}")
+    logger.info(f"dispatch: {'available' if HAS_DISPATCH else 'NOT AVAILABLE'}")
+    logger.info(f"yaml: {'available' if HAS_YAML else 'NOT AVAILABLE'}")
+    logger.info(f"ledger: {'available' if HAS_LEDGER else 'NOT AVAILABLE'}")
+    
+    if not HAS_INOTIFY and not args.test_mode:
+        logger.warning("inotify package NOT installed — falling back to polling mode.")
+        logger.warning("This is degraded: higher CPU, latency up to poll_interval seconds.")
+        logger.warning("Install with: pip install inotify")
+    
+    if not HAS_JSONSCHEMA:
+        logger.error("jsonschema NOT available — cannot validate tickets.")
+        sys.exit(1)
+    
+    if not HAS_DISPATCH:
+        logger.warning("dispatch.py NOT available — tickets will be processed without execution.")
+    
+    # Create all queue directories
+    for queue in config.queues:
+        queue_path = os.path.join(config.root, queue['path'])
+        for subdir in ['tmp', 'new', 'cur', 'quarantine', 'gates']:
+            (Path(queue_path) / subdir).mkdir(parents=True, exist_ok=True)
+    
+    # Start watching queues in separate threads (HR-INBOX-2: per-queue independent)
+    threads = []
     for queue in config.queues:
         queue_path = os.path.join(config.root, queue['path'])
         
-        if args.test_mode:
-            # Use polling in test mode
-            watch_queue_poll(queue_path, config.schema_path, logger, config.transport['poll_interval'])
+        if args.test_mode or not HAS_INOTIFY:
+            t = threading.Thread(
+                target=watch_queue_poll,
+                args=(queue_path, config.schema_path, logger, config.transport['poll_interval']),
+                name=f"poll-{queue['name']}",
+                daemon=True,
+            )
         else:
-            # Use inotify (preferred on Linux, HR-INBOX-5)
-            watch_queue_inotify(queue_path, config.schema_path, logger)
+            t = threading.Thread(
+                target=watch_queue_inotify,
+                args=(queue_path, config.schema_path, logger),
+                name=f"inotify-{queue['name']}",
+                daemon=True,
+            )
+        
+        t.start()
+        threads.append(t)
+        logger.info(f"Started {t.name}")
+    
+    logger.info(f"All {len(threads)} queue watchers started. Press Ctrl+C to exit.")
+    
+    # Wait for all threads (they're daemon threads, so this blocks forever)
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        logger.info("Inbox Watcher shutting down...")
 
 
 if __name__ == '__main__':

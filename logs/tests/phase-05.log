@@ -1,0 +1,70 @@
+2026-04-27 21:40:19,651 INFO === PHASE START: End-to-End Pipeline (PHASE-5) ===
+2026-04-27 21:40:19,652 INFO   PASS: Producer: ticket written to tmp/
+2026-04-27 21:40:19,652 INFO   PASS: Producer: ticket published (mv to new/)
+2026-04-27 21:40:19,652 ERROR Phase 5 crashed: module 'importlib.util' has no attribute 'module_for_spec'
+2026-04-27 21:40:19,652 INFO === PHASE END: End-to-End Pipeline (crash) ===
+2026-04-27 21:40:19,652 INFO Results written to: /home/mark/.securatron/logs/tests/phase-05_results.json
+2026-04-27 21:41:05,626 INFO === PHASE START: End-to-End Pipeline (PHASE-5) ===
+2026-04-27 21:41:05,626 INFO   PASS: Producer: ticket written to tmp/
+2026-04-27 21:41:05,626 INFO   PASS: Producer: ticket published (mv to new/)
+2026-04-27 21:41:05,627 ERROR   FAIL: End-to-end: valid ticket in cur/ — cur exists: False, new exists: False
+2026-04-27 21:41:05,627 INFO   PASS: End-to-end: urgent ticket published to inbox.urgent/new/
+2026-04-27 21:41:05,627 ERROR   FAIL: End-to-end: urgent ticket in inbox.urgent/cur/ — 
+2026-04-27 21:41:05,628 ERROR   FAIL: End-to-end: destructive ticket with human_gate processed — cur exists: False
+2026-04-27 21:41:05,628 ERROR   FAIL: End-to-end: batch ticket processed — cur exists: False
+2026-04-27 21:41:05,628 INFO Final state:
+2026-04-27 21:41:05,628 INFO   inbox/new/: 0 file(s)
+2026-04-27 21:41:05,628 INFO   inbox/cur/: 0 file(s)
+2026-04-27 21:41:05,628 INFO   inbox/quarantine/: 2 file(s)
+2026-04-27 21:41:05,628 INFO   inbox.urgent/new/: 0 file(s)
+2026-04-27 21:41:05,628 INFO   inbox.urgent/cur/: 0 file(s)
+2026-04-27 21:41:05,628 INFO   inbox.urgent/quarantine/: 1 file(s)
+2026-04-27 21:41:05,628 INFO   inbox.batch/new/: 0 file(s)
+2026-04-27 21:41:05,628 INFO   inbox.batch/cur/: 0 file(s)
+2026-04-27 21:41:05,628 INFO   inbox.batch/quarantine/: 1 file(s)
+2026-04-27 21:41:05,628 INFO === PHASE END: End-to-End Pipeline (pass) ===
+2026-04-27 21:41:05,628 INFO Results written to: /home/mark/.securatron/logs/tests/phase-05_results.json
+2026-04-27 21:41:56,624 INFO === PHASE START: End-to-End Pipeline (PHASE-5) ===
+2026-04-27 21:41:56,625 INFO   PASS: Producer: ticket written to tmp/
+2026-04-27 21:41:56,625 INFO   PASS: Producer: ticket published (mv to new/)
+2026-04-27 21:41:56,625 INFO   PASS: End-to-end: valid ticket in cur/
+2026-04-27 21:41:56,625 INFO   PASS: End-to-end: status updated to 'completed'
+2026-04-27 21:41:56,625 INFO   PASS: End-to-end: urgent ticket published to inbox.urgent/new/
+2026-04-27 21:41:56,626 INFO   PASS: End-to-end: urgent ticket in inbox.urgent/cur/
+2026-04-27 21:41:56,626 INFO   PASS: End-to-end: destructive ticket with human_gate processed
+2026-04-27 21:41:56,626 INFO   PASS: End-to-end: destructive ticket has destructive=True
+2026-04-27 21:41:56,626 INFO   PASS: End-to-end: batch ticket processed
+2026-04-27 21:41:56,626 INFO Final state:
+2026-04-27 21:41:56,626 INFO   inbox/new/: 0 file(s)
+2026-04-27 21:41:56,627 INFO   inbox/cur/: 2 file(s)
+2026-04-27 21:41:56,627 INFO   inbox/quarantine/: 0 file(s)
+2026-04-27 21:41:56,627 INFO   inbox.urgent/new/: 0 file(s)
+2026-04-27 21:41:56,627 INFO   inbox.urgent/cur/: 1 file(s)
+2026-04-27 21:41:56,627 INFO   inbox.urgent/quarantine/: 0 file(s)
+2026-04-27 21:41:56,627 INFO   inbox.batch/new/: 0 file(s)
+2026-04-27 21:41:56,627 INFO   inbox.batch/cur/: 1 file(s)
+2026-04-27 21:41:56,627 INFO   inbox.batch/quarantine/: 0 file(s)
+2026-04-27 21:41:56,627 INFO === PHASE END: End-to-End Pipeline (pass) ===
+2026-04-27 21:41:56,627 INFO Results written to: /home/mark/.securatron/logs/tests/phase-05_results.json
+2026-04-27 21:46:54,375 INFO === PHASE START: End-to-End Pipeline (PHASE-5) ===
+2026-04-27 21:46:54,376 INFO   PASS: Producer: ticket written to tmp/
+2026-04-27 21:46:54,376 INFO   PASS: Producer: ticket published (mv to new/)
+2026-04-27 21:46:54,377 INFO   PASS: End-to-end: valid ticket in cur/
+2026-04-27 21:46:54,377 INFO   PASS: End-to-end: status updated to 'completed'
+2026-04-27 21:46:54,377 INFO   PASS: End-to-end: urgent ticket published to inbox.urgent/new/
+2026-04-27 21:46:54,377 INFO   PASS: End-to-end: urgent ticket in inbox.urgent/cur/
+2026-04-27 21:46:54,377 INFO   PASS: End-to-end: destructive ticket with human_gate processed
+2026-04-27 21:46:54,377 INFO   PASS: End-to-end: destructive ticket has destructive=True
+2026-04-27 21:46:54,378 INFO   PASS: End-to-end: batch ticket processed
+2026-04-27 21:46:54,378 INFO Final state:
+2026-04-27 21:46:54,378 INFO   inbox/new/: 0 file(s)
+2026-04-27 21:46:54,378 INFO   inbox/cur/: 2 file(s)
+2026-04-27 21:46:54,378 INFO   inbox/quarantine/: 0 file(s)
+2026-04-27 21:46:54,378 INFO   inbox.urgent/new/: 0 file(s)
+2026-04-27 21:46:54,378 INFO   inbox.urgent/cur/: 1 file(s)
+2026-04-27 21:46:54,378 INFO   inbox.urgent/quarantine/: 0 file(s)
+2026-04-27 21:46:54,378 INFO   inbox.batch/new/: 0 file(s)
+2026-04-27 21:46:54,378 INFO   inbox.batch/cur/: 1 file(s)
+2026-04-27 21:46:54,378 INFO   inbox.batch/quarantine/: 0 file(s)
+2026-04-27 21:46:54,378 INFO === PHASE END: End-to-End Pipeline (pass) ===
+2026-04-27 21:46:54,378 INFO Results written to: /home/mark/.securatron/logs/tests/phase-05_results.json

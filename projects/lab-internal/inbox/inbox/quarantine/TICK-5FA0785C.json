@@ -1,0 +1,13 @@
+{
+  "ticket_id": "TICK-5FA0785C",
+  "source": "agent",
+  "skill": "web.nikto",
+  "priority": "invalid",
+  "created_at": "2026-04-28T01:00:00Z",
+  "status": "pending",
+  "inputs": {
+    "target": "192.168.1.1"
+  },
+  "quarantine_reason": "schema_validation_failed",
+  "quarantine_ts": "2026-04-28T02:40:42.219617+00:00"
+}

@@ -1,0 +1,34 @@
+{
+  "test_name": "phase-01",
+  "timestamp": "2026-04-28T02:40:41.622175+00:00",
+  "phases": [
+    {
+      "name": "Directory Structure",
+      "start_time": "2026-04-28T02:40:41.622178+00:00",
+      "tests": [
+        {
+          "name": "All queue dirs exist",
+          "passed": true
+        },
+        {
+          "name": "gates/ exists",
+          "passed": true
+        },
+        {
+          "name": "Charter file exists",
+          "passed": true
+        },
+        {
+          "name": "Watcher script exists",
+          "passed": true
+        }
+      ],
+      "passed": 4,
+      "failed": 0,
+      "status": "pass"
+    }
+  ],
+  "total_tests": 4,
+  "passed": 4,
+  "failed": 0
+}

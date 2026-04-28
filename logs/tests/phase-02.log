@@ -1,0 +1,48 @@
+2026-04-27 21:40:19,590 INFO === PHASE START: Schema Validation (PHASE-2) ===
+2026-04-27 21:40:19,649 INFO   PASS: Valid ticket passes schema validation
+2026-04-27 21:40:19,649 INFO   PASS: Missing ticket_id fails validation
+2026-04-27 21:40:19,649 INFO   PASS: Invalid priority fails validation
+2026-04-27 21:40:19,649 INFO   PASS: Invalid status fails validation
+2026-04-27 21:40:19,650 INFO   PASS: Invalid ticket_id format fails validation
+2026-04-27 21:40:19,650 INFO   PASS: destructive=true without human_gate=true fails validation
+2026-04-27 21:40:19,650 INFO   PASS: Extra unknown field fails validation
+2026-04-27 21:40:19,650 INFO   PASS: Valid ticket with arbitrary inputs passes
+2026-04-27 21:40:19,650 INFO   PASS: destructive=true with human_gate=true passes validation
+2026-04-27 21:40:19,650 INFO === PHASE END: Schema Validation (pass) ===
+2026-04-27 21:40:19,650 INFO Results written to: /home/mark/.securatron/logs/tests/phase-02_results.json
+2026-04-27 21:41:05,563 INFO === PHASE START: Schema Validation (PHASE-2) ===
+2026-04-27 21:41:05,619 INFO   PASS: Valid ticket passes schema validation
+2026-04-27 21:41:05,619 INFO   PASS: Missing ticket_id fails validation
+2026-04-27 21:41:05,619 INFO   PASS: Invalid priority fails validation
+2026-04-27 21:41:05,619 INFO   PASS: Invalid status fails validation
+2026-04-27 21:41:05,619 INFO   PASS: Invalid ticket_id format fails validation
+2026-04-27 21:41:05,619 INFO   PASS: destructive=true without human_gate=true fails validation
+2026-04-27 21:41:05,620 INFO   PASS: Extra unknown field fails validation
+2026-04-27 21:41:05,620 INFO   PASS: Valid ticket with arbitrary inputs passes
+2026-04-27 21:41:05,620 INFO   PASS: destructive=true with human_gate=true passes validation
+2026-04-27 21:41:05,620 INFO === PHASE END: Schema Validation (pass) ===
+2026-04-27 21:41:05,620 INFO Results written to: /home/mark/.securatron/logs/tests/phase-02_results.json
+2026-04-27 21:41:56,564 INFO === PHASE START: Schema Validation (PHASE-2) ===
+2026-04-27 21:41:56,620 INFO   PASS: Valid ticket passes schema validation
+2026-04-27 21:41:56,620 INFO   PASS: Missing ticket_id fails validation
+2026-04-27 21:41:56,620 INFO   PASS: Invalid priority fails validation
+2026-04-27 21:41:56,620 INFO   PASS: Invalid status fails validation
+2026-04-27 21:41:56,620 INFO   PASS: Invalid ticket_id format fails validation
+2026-04-27 21:41:56,620 INFO   PASS: destructive=true without human_gate=true fails validation
+2026-04-27 21:41:56,620 INFO   PASS: Extra unknown field fails validation
+2026-04-27 21:41:56,621 INFO   PASS: Valid ticket with arbitrary inputs passes
+2026-04-27 21:41:56,621 INFO   PASS: destructive=true with human_gate=true passes validation
+2026-04-27 21:41:56,621 INFO === PHASE END: Schema Validation (pass) ===
+2026-04-27 21:41:56,621 INFO Results written to: /home/mark/.securatron/logs/tests/phase-02_results.json
+2026-04-27 21:46:54,307 INFO === PHASE START: Schema Validation (PHASE-2) ===
+2026-04-27 21:46:54,370 INFO   PASS: Valid ticket passes schema validation
+2026-04-27 21:46:54,370 INFO   PASS: Missing ticket_id fails validation
+2026-04-27 21:46:54,371 INFO   PASS: Invalid priority fails validation
+2026-04-27 21:46:54,371 INFO   PASS: Invalid status fails validation
+2026-04-27 21:46:54,371 INFO   PASS: Invalid ticket_id format fails validation
+2026-04-27 21:46:54,371 INFO   PASS: destructive=true without human_gate=true fails validation
+2026-04-27 21:46:54,371 INFO   PASS: Extra unknown field fails validation
+2026-04-27 21:46:54,371 INFO   PASS: Valid ticket with arbitrary inputs passes
+2026-04-27 21:46:54,371 INFO   PASS: destructive=true with human_gate=true passes validation
+2026-04-27 21:46:54,371 INFO === PHASE END: Schema Validation (pass) ===
+2026-04-27 21:46:54,372 INFO Results written to: /home/mark/.securatron/logs/tests/phase-02_results.json

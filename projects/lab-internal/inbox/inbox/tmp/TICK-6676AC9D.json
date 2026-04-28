@@ -1,12 +1,11 @@
 {
-  "ticket_id": "TICK-9621916A",
+  "ticket_id": "TICK-6676AC9D",
   "source": "agent",
   "skill": "web.nikto",
-  "priority": "low",
+  "priority": "normal",
   "created_at": "2026-04-28T01:00:00Z",
-  "status": "completed",
+  "status": "pending",
   "inputs": {
     "target": "192.168.1.1"
-  },
-  "dispatch_stub": true
+  }
 }

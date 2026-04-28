@@ -1,0 +1,64 @@
+2026-04-27 21:40:19,589 INFO === PHASE START: Schema File Integrity (PHASE-0) ===
+2026-04-27 21:40:19,590 INFO   PASS: Schema file exists
+2026-04-27 21:40:19,590 INFO   PASS: Schema file is valid JSON
+2026-04-27 21:40:19,590 INFO   PASS: $schema field = draft 2020-12
+2026-04-27 21:40:19,590 INFO   PASS: $id field starts with securatron/inbox-ticket/
+2026-04-27 21:40:19,590 INFO   PASS: All required fields present
+2026-04-27 21:40:19,590 INFO   PASS: additionalProperties = false (strict schema)
+2026-04-27 21:40:19,590 INFO   PASS: allOf constraint (destructive → human_gate)
+2026-04-27 21:40:19,590 INFO   PASS: Schema has definitions block
+2026-04-27 21:40:19,590 INFO   PASS: ticket_id pattern starts with TICK-
+2026-04-27 21:40:19,590 INFO   PASS: priority enum matches charter
+2026-04-27 21:40:19,590 INFO   PASS: status enum matches charter
+2026-04-27 21:40:19,590 INFO   PASS: source enum matches charter
+2026-04-27 21:40:19,590 INFO   PASS: auth field reserved (CA96 future)
+2026-04-27 21:40:19,590 INFO === PHASE END: Schema File Integrity (pass) ===
+2026-04-27 21:40:19,590 INFO Results written to: /home/mark/.securatron/logs/tests/phase-00_results.json
+2026-04-27 21:41:05,562 INFO === PHASE START: Schema File Integrity (PHASE-0) ===
+2026-04-27 21:41:05,562 INFO   PASS: Schema file exists
+2026-04-27 21:41:05,562 INFO   PASS: Schema file is valid JSON
+2026-04-27 21:41:05,562 INFO   PASS: $schema field = draft 2020-12
+2026-04-27 21:41:05,562 INFO   PASS: $id field starts with securatron/inbox-ticket/
+2026-04-27 21:41:05,562 INFO   PASS: All required fields present
+2026-04-27 21:41:05,562 INFO   PASS: additionalProperties = false (strict schema)
+2026-04-27 21:41:05,562 INFO   PASS: allOf constraint (destructive → human_gate)
+2026-04-27 21:41:05,562 INFO   PASS: Schema has definitions block
+2026-04-27 21:41:05,562 INFO   PASS: ticket_id pattern starts with TICK-
+2026-04-27 21:41:05,562 INFO   PASS: priority enum matches charter
+2026-04-27 21:41:05,562 INFO   PASS: status enum matches charter
+2026-04-27 21:41:05,563 INFO   PASS: source enum matches charter
+2026-04-27 21:41:05,563 INFO   PASS: auth field reserved (CA96 future)
+2026-04-27 21:41:05,563 INFO === PHASE END: Schema File Integrity (pass) ===
+2026-04-27 21:41:05,563 INFO Results written to: /home/mark/.securatron/logs/tests/phase-00_results.json
+2026-04-27 21:41:56,563 INFO === PHASE START: Schema File Integrity (PHASE-0) ===
+2026-04-27 21:41:56,563 INFO   PASS: Schema file exists
+2026-04-27 21:41:56,563 INFO   PASS: Schema file is valid JSON
+2026-04-27 21:41:56,563 INFO   PASS: $schema field = draft 2020-12
+2026-04-27 21:41:56,563 INFO   PASS: $id field starts with securatron/inbox-ticket/
+2026-04-27 21:41:56,563 INFO   PASS: All required fields present
+2026-04-27 21:41:56,563 INFO   PASS: additionalProperties = false (strict schema)
+2026-04-27 21:41:56,563 INFO   PASS: allOf constraint (destructive → human_gate)
+2026-04-27 21:41:56,563 INFO   PASS: Schema has definitions block
+2026-04-27 21:41:56,563 INFO   PASS: ticket_id pattern starts with TICK-
+2026-04-27 21:41:56,563 INFO   PASS: priority enum matches charter
+2026-04-27 21:41:56,563 INFO   PASS: status enum matches charter
+2026-04-27 21:41:56,564 INFO   PASS: source enum matches charter
+2026-04-27 21:41:56,564 INFO   PASS: auth field reserved (CA96 future)
+2026-04-27 21:41:56,564 INFO === PHASE END: Schema File Integrity (pass) ===
+2026-04-27 21:41:56,564 INFO Results written to: /home/mark/.securatron/logs/tests/phase-00_results.json
+2026-04-27 21:46:54,305 INFO === PHASE START: Schema File Integrity (PHASE-0) ===
+2026-04-27 21:46:54,306 INFO   PASS: Schema file exists
+2026-04-27 21:46:54,306 INFO   PASS: Schema file is valid JSON
+2026-04-27 21:46:54,306 INFO   PASS: $schema field = draft 2020-12
+2026-04-27 21:46:54,306 INFO   PASS: $id field starts with securatron/inbox-ticket/
+2026-04-27 21:46:54,306 INFO   PASS: All required fields present
+2026-04-27 21:46:54,306 INFO   PASS: additionalProperties = false (strict schema)
+2026-04-27 21:46:54,306 INFO   PASS: allOf constraint (destructive → human_gate)
+2026-04-27 21:46:54,306 INFO   PASS: Schema has definitions block
+2026-04-27 21:46:54,306 INFO   PASS: ticket_id pattern starts with TICK-
+2026-04-27 21:46:54,306 INFO   PASS: priority enum matches charter
+2026-04-27 21:46:54,306 INFO   PASS: status enum matches charter
+2026-04-27 21:46:54,306 INFO   PASS: source enum matches charter
+2026-04-27 21:46:54,306 INFO   PASS: auth field reserved (CA96 future)
+2026-04-27 21:46:54,306 INFO === PHASE END: Schema File Integrity (pass) ===
+2026-04-27 21:46:54,306 INFO Results written to: /home/mark/.securatron/logs/tests/phase-00_results.json

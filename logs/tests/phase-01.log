@@ -1,0 +1,58 @@
+2026-04-27 21:40:19,590 INFO === PHASE START: Directory Structure (PHASE-1) ===
+2026-04-27 21:40:19,590 ERROR   FAIL: Inbox root exists — Expected: /home/mark/.securatron/projects/lab-internal/inbox
+2026-04-27 21:40:19,590 INFO === PHASE END: Directory Structure (fail) ===
+2026-04-27 21:40:19,590 INFO Results written to: /home/mark/.securatron/logs/tests/phase-01_results.json
+2026-04-27 21:41:05,563 INFO === PHASE START: Directory Structure (PHASE-1) ===
+2026-04-27 21:41:05,563 INFO   PASS: Inbox root exists
+2026-04-27 21:41:05,563 INFO   PASS: Queue 'inbox/tmp/' exists
+2026-04-27 21:41:05,563 INFO   PASS: Queue 'inbox/new/' exists
+2026-04-27 21:41:05,563 INFO   PASS: Queue 'inbox/cur/' exists
+2026-04-27 21:41:05,563 INFO   PASS: Queue 'inbox/quarantine/' exists
+2026-04-27 21:41:05,563 INFO   PASS: Queue 'inbox.urgent/tmp/' exists
+2026-04-27 21:41:05,563 INFO   PASS: Queue 'inbox.urgent/new/' exists
+2026-04-27 21:41:05,563 INFO   PASS: Queue 'inbox.urgent/cur/' exists
+2026-04-27 21:41:05,563 INFO   PASS: Queue 'inbox.urgent/quarantine/' exists
+2026-04-27 21:41:05,563 INFO   PASS: Queue 'inbox.batch/tmp/' exists
+2026-04-27 21:41:05,563 INFO   PASS: Queue 'inbox.batch/new/' exists
+2026-04-27 21:41:05,563 INFO   PASS: Queue 'inbox.batch/cur/' exists
+2026-04-27 21:41:05,563 INFO   PASS: Queue 'inbox.batch/quarantine/' exists
+2026-04-27 21:41:05,563 INFO   PASS: Charter file exists
+2026-04-27 21:41:05,563 INFO   PASS: Watcher script exists
+2026-04-27 21:41:05,563 INFO === PHASE END: Directory Structure (pass) ===
+2026-04-27 21:41:05,563 INFO Results written to: /home/mark/.securatron/logs/tests/phase-01_results.json
+2026-04-27 21:41:56,564 INFO === PHASE START: Directory Structure (PHASE-1) ===
+2026-04-27 21:41:56,564 INFO   PASS: Inbox root exists
+2026-04-27 21:41:56,564 INFO   PASS: Queue 'inbox/tmp/' exists
+2026-04-27 21:41:56,564 INFO   PASS: Queue 'inbox/new/' exists
+2026-04-27 21:41:56,564 INFO   PASS: Queue 'inbox/cur/' exists
+2026-04-27 21:41:56,564 INFO   PASS: Queue 'inbox/quarantine/' exists
+2026-04-27 21:41:56,564 INFO   PASS: Queue 'inbox.urgent/tmp/' exists
+2026-04-27 21:41:56,564 INFO   PASS: Queue 'inbox.urgent/new/' exists
+2026-04-27 21:41:56,564 INFO   PASS: Queue 'inbox.urgent/cur/' exists
+2026-04-27 21:41:56,564 INFO   PASS: Queue 'inbox.urgent/quarantine/' exists
+2026-04-27 21:41:56,564 INFO   PASS: Queue 'inbox.batch/tmp/' exists
+2026-04-27 21:41:56,564 INFO   PASS: Queue 'inbox.batch/new/' exists
+2026-04-27 21:41:56,564 INFO   PASS: Queue 'inbox.batch/cur/' exists
+2026-04-27 21:41:56,564 INFO   PASS: Queue 'inbox.batch/quarantine/' exists
+2026-04-27 21:41:56,564 INFO   PASS: Charter file exists
+2026-04-27 21:41:56,564 INFO   PASS: Watcher script exists
+2026-04-27 21:41:56,564 INFO === PHASE END: Directory Structure (pass) ===
+2026-04-27 21:41:56,564 INFO Results written to: /home/mark/.securatron/logs/tests/phase-01_results.json
+2026-04-27 21:46:54,306 INFO === PHASE START: Directory Structure (PHASE-1) ===
+2026-04-27 21:46:54,306 INFO   PASS: Inbox root exists
+2026-04-27 21:46:54,306 INFO   PASS: Queue 'inbox/tmp/' exists
+2026-04-27 21:46:54,306 INFO   PASS: Queue 'inbox/new/' exists
+2026-04-27 21:46:54,306 INFO   PASS: Queue 'inbox/cur/' exists
+2026-04-27 21:46:54,306 INFO   PASS: Queue 'inbox/quarantine/' exists
+2026-04-27 21:46:54,306 INFO   PASS: Queue 'inbox.urgent/tmp/' exists
+2026-04-27 21:46:54,306 INFO   PASS: Queue 'inbox.urgent/new/' exists
+2026-04-27 21:46:54,306 INFO   PASS: Queue 'inbox.urgent/cur/' exists
+2026-04-27 21:46:54,306 INFO   PASS: Queue 'inbox.urgent/quarantine/' exists
+2026-04-27 21:46:54,306 INFO   PASS: Queue 'inbox.batch/tmp/' exists
+2026-04-27 21:46:54,306 INFO   PASS: Queue 'inbox.batch/new/' exists
+2026-04-27 21:46:54,306 INFO   PASS: Queue 'inbox.batch/cur/' exists
+2026-04-27 21:46:54,306 INFO   PASS: Queue 'inbox.batch/quarantine/' exists
+2026-04-27 21:46:54,306 INFO   PASS: Charter file exists
+2026-04-27 21:46:54,307 INFO   PASS: Watcher script exists
+2026-04-27 21:46:54,307 INFO === PHASE END: Directory Structure (pass) ===
+2026-04-27 21:46:54,307 INFO Results written to: /home/mark/.securatron/logs/tests/phase-01_results.json

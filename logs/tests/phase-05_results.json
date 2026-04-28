@@ -1,0 +1,42 @@
+{
+  "test_name": "phase-05",
+  "timestamp": "2026-04-28T02:40:42.224003+00:00",
+  "phases": [
+    {
+      "name": "End-to-End Pipeline",
+      "start_time": "2026-04-28T02:40:42.224009+00:00",
+      "tests": [
+        {
+          "name": "e2e: valid ticket in new/ after publish",
+          "passed": true
+        },
+        {
+          "name": "e2e: valid ticket in cur/",
+          "passed": true
+        },
+        {
+          "name": "e2e: urgent ticket in inbox.urgent/cur/",
+          "passed": true
+        },
+        {
+          "name": "e2e: destructive ticket with human_gate processed",
+          "passed": true
+        },
+        {
+          "name": "e2e: destructive ticket has flags",
+          "passed": true
+        },
+        {
+          "name": "e2e: batch ticket in inbox.batch/cur/",
+          "passed": true
+        }
+      ],
+      "passed": 6,
+      "failed": 0,
+      "status": "pass"
+    }
+  ],
+  "total_tests": 6,
+  "passed": 6,
+  "failed": 0
+}
