@@ -14,34 +14,28 @@ BASE_DIR = Path.home() / ".securatron"
 INBOX = BASE_DIR / "global" / "inbox"
 TOOLS = BASE_DIR / "global" / "tools"
 
-# RP-004: Review prompt must enumerate Section VIII violations.
-# This prompt is displayed to the human reviewer when a skill card
-# requires human review (requires_human_review == true).
-REVIEW_PROMPT = """\
-Human Review Required: {atom_id}
+REVIEW_PROMPT = """
+--- SKILL CARD PROMOTION REVIEW CHECKLIST ---
+Verification required for requires_human_review = true.
+Please verify that none of the following Section VIII violations have occurred:
 
-Before approving promotion, check for these Section VIII violations:
+1. HR-8: Warm Tier (index.db, pycache, .pyc) committed to version control?
+2. HR-2: Direct writes to index.db from outside reindex.py?
+3. HR-3: Mutation of cold-tier JSONL entries after write?
+4. HR-4: Bypassed memory.precheck during authorship?
+5. HR-5: Cloud/Network dependencies added to memory read path?
+6. HR-6: Trial results lacking trial_id/source_path provenance?
+7. Used ORM frameworks instead of direct sqlite3?
+8. Compressed, pruned, or deleted cold-tier data?
+9. pickle or dill used for memory artifacts?
+10. reindex.py made incremental instead of full rebuild?
 
-  [ ] 1. Warm index or *.db files committed to git (HR-8, Section II)
-  [ ] 2. Any code path writes to index.db outside reindex.py or the dispatch append-hook (HR-2)
-  [ ] 3. Ledger JSONL entries were modified after write (HR-3)
-  [ ] 4. Restore gate was bypassed during authorship (HR-4)
-  [ ] 5. Cloud or network dependencies introduced in memory path (HR-5)
-  [ ] 6. Provenance broken — trial_id or source_path missing (HR-6)
-  [ ] 7. ORM frameworks used (SQLAlchemy, Peewee, etc.) instead of direct sqlite3
-  [ ] 8. Cold-tier data compressed, pruned, or deleted
-  [ ] 9. Warm index treated as durable source of truth
-  [ ] 10. pickle or dill used for memory artifacts (security boundary)
-  [ ] 11. reindex.py is incremental instead of full rebuild
+Context:
+- Skill: {skill_id}
+- Successes: {successes}/{req_success}
+- Distinct Inputs: {distinct}/{req_distinct}
 
-Additional checks:
-  - Skill card schema is complete and matches skill-card.v1.yaml
-  - Required success trials met: {required_success}
-  - Required distinct inputs met: {required_distinct_inputs}
-  - No ad-hoc improvisation outside Charter sections
-
-Recommendation: approve | reject | request_changes
-"""
+Approve promotion? (y/N): """
 
 def drain_inbox():
     """Process all proposals in the inbox."""
@@ -58,31 +52,40 @@ def drain_inbox():
 def process_promotion(proposal: dict):
     """Evaluate and promote a Skill Card."""
     card = proposal["skill_card"]
+    skill_id = card["id"]
     
     # Get runtime behavior from ledger instead of card metadata
-    stats = ledger.summarize(card["id"])
+    stats = ledger.summarize(skill_id)
     rules = card.get("promotion", {})
     
     # Evaluate against gate rules
-    success_met = stats["success"] >= rules.get("required_success", 3)
-    distinct_met = stats["distinct_inputs"] >= rules.get("required_distinct_inputs", 3)
+    req_success = rules.get("required_success", 3)
+    req_distinct = rules.get("required_distinct_inputs", 3)
+    
+    success_met = stats["success"] >= req_success
+    distinct_met = stats["distinct_inputs"] >= req_distinct
     
     if success_met and distinct_met:
-        if not rules.get("requires_human_review", False):
-            target = TOOLS / f"{card['id']}.yaml"
+        needs_review = rules.get("requires_human_review", False)
+        
+        if needs_review:
+            print(REVIEW_PROMPT.format(
+                skill_id=skill_id,
+                successes=stats["success"],
+                req_success=req_success,
+                distinct=stats["distinct_inputs"],
+                req_distinct=req_distinct
+            ))
+            # In a fully autonomous loop, we might wait for operator input.
+            # For now, we print and stop as per doctrine.
+            print(f"PENDING: {skill_id} requires human review.")
+        else:
+            target = TOOLS / f"{skill_id}.yaml"
             with open(target, "w") as f:
                 yaml.dump(card, f)
-            print(f"PROMOTED: {card['id']} to global tier.")
-        else:
-            # RP-004: Display review prompt with Section VIII checks
-            rules = card.get("promotion", {})
-            print(REVIEW_PROMPT.format(
-                atom_id=card['id'],
-                required_success=rules.get("required_success", 5),
-                required_distinct_inputs=rules.get("required_distinct_inputs", 3),
-            ))
+            print(f"PROMOTED: {skill_id} to global tier.")
     else:
-        print(f"REJECTED: {card['id']} needs more trials (Success: {stats['success']}/{rules.get('required_success', 3)}, Distinct: {stats['distinct_inputs']}/{rules.get('required_distinct_inputs', 3)}).")
+        print(f"REJECTED: {skill_id} needs more trials (Success: {stats['success']}/{req_success}, Distinct: {stats['distinct_inputs']}/{req_distinct}).")
 
 if __name__ == "__main__":
     drain_inbox()

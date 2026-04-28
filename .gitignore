@@ -1,19 +1,4 @@
-# SecuraTron — Disposable state (HR-8, Section II)
-# These files are rebuilt from cold canonical and must NOT be committed.
-
-# Warm index
-global/memory/index.db
 global/memory/*.db
-
-# Python cache
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
-
-# Post-commit temp files
-global/post-mortems/.tmp.*
-
-# Podman/container runtime artifacts
-*.log
-*.pid
+sessions/
