@@ -1,0 +1,11 @@
+{
+  "ticket_id": "TICK-75C8AE03",
+  "source": "operator",
+  "skill": "system.delete",
+  "target": "/tmp/test-data",
+  "priority": "high",
+  "created_at": "2026-04-27T21:00:00Z",
+  "status": "completed",
+  "destructive": true,
+  "human_gate": true
+}
