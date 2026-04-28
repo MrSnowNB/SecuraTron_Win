@@ -247,53 +247,181 @@ def run_molecule(card: dict, inputs: dict, project_id: str, session_id: str) -> 
         "steps": list(steps_results.keys())
     }
 
+def cli_memory_precheck(args):
+    """memory.precheck — Restore Gate (Charter Section V).
+
+    Queries the warm index for prior trial history and related post-mortems,
+    then returns a recommendation on whether to proceed with atom authorship.
+    """
+    import sqlite3
+    from datetime import datetime, timedelta
+    import re
+
+    skill_id = args.skill
+    target = args.target
+    limit = args.limit
+
+    # Load post-mortem text for keyword extraction
+    pm_dir = BASE_DIR / "global" / "post-mortems"
+    pm_texts = {}
+    if pm_dir.exists():
+        for pm_file in pm_dir.glob("*.md"):
+            pm_id = pm_file.stem  # e.g. "web.gobuster"
+            pm_texts[pm_id] = pm_file.read_text()
+
+    # Build a set of related atom IDs: any atom sharing the same prefix
+    prefix_parts = skill_id.split(".")
+    related_atoms = set()
+    for pm_id in pm_texts:
+        pm_parts = pm_id.split(".")
+        # Match if they share the first N-1 parts (same category) or any common atom
+        if len(prefix_parts) >= 2 and len(pm_parts) >= 2:
+            if prefix_parts[0] == pm_parts[0]:
+                related_atoms.add(pm_id)
+        if skill_id == pm_id:
+            related_atoms.add(pm_id)
+
+    # Load index.db
+    db_path = BASE_DIR / "global" / "memory" / "index.db"
+    if not db_path.exists():
+        return {
+            "prior_trials_for_skill": 0,
+            "prior_trials_for_target": 0,
+            "related_post_mortems": [],
+            "known_gotchas_keywords": [],
+            "recommendation": "proceed",
+            "_warning": "index.db not found — run reindex.py first"
+        }
+
+    conn = sqlite3.connect(str(db_path))
+    conn.row_factory = sqlite3.Row
+
+    # Prior trials for this skill
+    skill_rows = conn.execute(
+        "SELECT COUNT(*) as cnt FROM trials WHERE skill_id = ?", (skill_id,)
+    ).fetchone()
+    prior_skill = skill_rows["cnt"]
+
+    # Prior trials for this target (across all skills)
+    target_rows = conn.execute(
+        "SELECT COUNT(*) as cnt FROM trials WHERE target = ?", (target,)
+    ).fetchone()
+    prior_target = target_rows["cnt"]
+
+    # Prior trials for this skill+target combination (for abort detection)
+    combo_rows = conn.execute(
+        "SELECT COUNT(*) as cnt FROM trials WHERE skill_id = ? AND target = ? AND result = 'failure'",
+        (skill_id, target)
+    ).fetchone()
+    recent_failures = combo_rows["cnt"]
+
+    # Related post-mortems (from index, not from pm_texts)
+    related_pms = []
+    for pm_id in related_atoms:
+        row = conn.execute(
+            "SELECT atom_id, gotchas, source_path FROM post_mortems WHERE atom_id = ?",
+            (pm_id,)
+        ).fetchone()
+        if row:
+            related_pms.append({
+                "atom_id": row["atom_id"],
+                "gotchas": row["gotchas"],
+                "path": row["source_path"]
+            })
+
+    # Extract known gotchas keywords from related post-mortems
+    gotchas_text = " ".join(pm.get("gotchas", "") or "" for pm in related_pms)
+    # Extract keywords: uppercase words, acronyms, technical terms
+    raw_keywords = re.findall(r'\b[A-Z]{2,}\b', gotchas_text)
+    # Also extract known technical patterns
+    tech_patterns = re.findall(r'- \*\*(.*?)\*\*', gotchas_text)
+    known_gotchas_keywords = list(dict.fromkeys(raw_keywords + tech_patterns))  # deduplicate, preserve order
+
+    conn.close()
+
+    # Determine recommendation (Charter Section V)
+    if recent_failures >= 3:
+        recommendation = "abort_pattern_repeat"
+    elif related_pms:
+        recommendation = "review_attached"
+    else:
+        recommendation = "proceed"
+
+    return {
+        "prior_trials_for_skill": prior_skill,
+        "prior_trials_for_target": prior_target,
+        "related_post_mortems": related_pms,
+        "known_gotchas_keywords": known_gotchas_keywords,
+        "recommendation": recommendation
+    }
+
+
 def main():
     import argparse
     parser = argparse.ArgumentParser(description="SecuraTron Dispatcher CLI")
-    parser.add_argument("--skill", required=True, help="Skill ID (e.g., web.gobuster)")
-    parser.add_argument("--input", action="append", help="Input in key=value format (repeatable)")
-    parser.add_argument("--project", required=True, help="Project ID")
-    parser.add_argument("--trials", type=int, default=1, help="Number of trials to run")
-    parser.add_argument("--session", help="Session ID (optional)")
-    parser.add_argument("--output-format", choices=["json", "human"], default="human", help="Output format")
+    subparsers = parser.add_subparsers(dest="command", help="Sub-commands")
+
+    # --- default: dispatch (backward-compatible) ---
+    parser_main = subparsers.add_parser("dispatch", help="Run a skill card (backward-compatible)")
+    parser_main.add_argument("--skill", required=True, help="Skill ID (e.g., web.gobuster)")
+    parser_main.add_argument("--input", action="append", help="Input in key=value format (repeatable)")
+    parser_main.add_argument("--project", required=True, help="Project ID")
+    parser_main.add_argument("--trials", type=int, default=1, help="Number of trials to run")
+    parser_main.add_argument("--session", help="Session ID (optional)")
+    parser_main.add_argument("--output-format", choices=["json", "human"], default="human", help="Output format")
+
+    # --- memory.precheck (Charter Section V) ---
+    parser_precheck = subparsers.add_parser("memory.precheck", help="Restore gate: check prior trial history and related post-mortems (Charter Section V)")
+    parser_precheck.add_argument("--skill", required=True, help="Skill ID being authored (e.g., web.gobuster)")
+    parser_precheck.add_argument("--target", required=True, help="Primary target for the skill")
+    parser_precheck.add_argument("--limit", type=int, default=10, help="Max results to return")
 
     args = parser.parse_args()
 
-    # Parse inputs
-    inputs = {}
-    if args.input:
-        for i in args.input:
-            if "=" in i:
-                k, v = i.split("=", 1)
-                inputs[k] = v
-            else:
-                print(f"Warning: Ignoring malformed input '{i}' (must be key=value)")
+    # --- Dispatch by subcommand ---
+    if args.command == "memory.precheck":
+        result = cli_memory_precheck(args)
+        print(json.dumps(result, indent=2))
+        sys.exit(0)
 
-    # Load skills
-    from mcp_server import CARDS
-    if args.skill not in CARDS:
-        print(f"Error: Skill '{args.skill}' not found")
-        sys.exit(1)
-    
-    card = CARDS[args.skill]
-    
-    # Handle session
-    import session as sess_mgr
-    session_id = args.session or sess_mgr.open_session(args.project)
-    
-    results = []
-    for t in range(args.trials):
-        if args.output_format == "human":
-            print(f"--- Trial {t+1}/{args.trials} ---")
+    elif args.command == "dispatch" or args.command is None:
+        # Backward-compatible: dispatch mode (no subcommand or explicit "dispatch")
+        inputs = {}
+        if args.input:
+            for i in args.input:
+                if "=" in i:
+                    k, v = i.split("=", 1)
+                    inputs[k] = v
+                else:
+                    print(f"Warning: Ignoring malformed input '{i}' (must be key=value)")
+
+        from mcp_server import CARDS
+        if args.skill not in CARDS:
+            print(f"Error: Skill '{args.skill}' not found")
+            sys.exit(1)
         
-        result = dispatch(card, inputs, args.project, session_id)
-        results.append(result)
+        card = CARDS[args.skill]
         
-        if args.output_format == "human":
-            print(json.dumps(result, indent=2))
+        import session as sess_mgr
+        session_id = args.session or sess_mgr.open_session(args.project)
+        
+        results = []
+        for t in range(args.trials):
+            if args.output_format == "human":
+                print(f"--- Trial {t+1}/{args.trials} ---")
             
-    if args.output_format == "json":
-        print(json.dumps(results if args.trials > 1 else results[0], indent=2))
+            result = dispatch(card, inputs, args.project, session_id)
+            results.append(result)
+            
+            if args.output_format == "human":
+                print(json.dumps(result, indent=2))
+                
+        if args.output_format == "json":
+            print(json.dumps(results if args.trials > 1 else results[0], indent=2))
+
+    else:
+        print(f"Unknown command: {args.command}", file=sys.stderr)
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
