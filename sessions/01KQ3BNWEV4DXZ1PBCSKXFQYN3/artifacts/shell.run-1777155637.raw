@@ -1,9 +1,0 @@
-STDOUT:
-Loading model: Qwen3.6-27B-GGUF
-
-
-STDERR:
-Error loading model: Request failed: 500
-
-
-EXIT_CODE: 1

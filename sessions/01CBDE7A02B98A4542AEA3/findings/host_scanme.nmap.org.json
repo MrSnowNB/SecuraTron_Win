@@ -1,8 +1,0 @@
-{
-  "metadata": {
-    "timestamp": "2026-04-26T17:32:11.262900",
-    "author": "model",
-    "session_id": "01CBDE7A02B98A4542AEA3"
-  },
-  "payload": "{\"hosts\": [{\"ip\": \"45.33.32.156\", \"ports\": [{\"port\": 7, \"protocol\": \"tcp\", \"service\": \"echo\", \"state\": \"filtered\"}, {\"port\": 19, \"protocol\": \"tcp\", \"service\": \"chargen\", \"state\": \"filtered\"}, {\"port\": 22, \"protocol\": \"tcp\", \"service\": \"ssh\", \"state\": \"open\"}, {\"port\": 53, \"protocol\": \"tcp\", \"service\": \"domain\", \"state\": \"open\"}, {\"port\": 80, \"protocol\": \"tcp\", \"service\": \"http\", \"state\": \"open\"}, {\"port\": 9929, \"protocol\": \"tcp\", \"service\": \"nping-echo\", \"state\": \"open\"}, {\"port\": 31337, \"protocol\": \"tcp\", \"service\": \"Elite\", \"state\": \"open\"}]}]}"
-}

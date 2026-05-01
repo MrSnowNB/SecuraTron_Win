@@ -1,9 +1,0 @@
-STDOUT:
-
-
-STDERR:
-[1m[31mUnable to parse invalid target : Invalid character in host: '{flags}'[0m
-[1m[31mPrepare Target Failed - Invalid character in host: '{flags}'[0m
-
-
-EXIT_CODE: 0
