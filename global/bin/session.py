@@ -4,7 +4,7 @@ from datetime import datetime
 from pathlib import Path
 from ulid import ULID
 
-BASE_DIR = Path.home() / ".securatron"
+BASE_DIR = Path(os.getenv("SECURATRON_HOME", str(Path.home() / ".securatron")))
 
 def open_session(project_id: str):
     """Open a new session."""

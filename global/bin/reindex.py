@@ -1,12 +1,13 @@
 import json
 import sqlite3
 import hashlib
+import os
 from pathlib import Path
 import time
 from datetime import datetime
 
 # Standard paths
-BASE_DIR = Path.home() / ".securatron"
+BASE_DIR = Path(os.getenv("SECURATRON_HOME", str(Path.home() / ".securatron")))
 LEDGER_DIR = BASE_DIR / "global" / "ledger"
 POSTMORTEM_DIR = BASE_DIR / "global" / "post-mortems"
 DB_PATH = BASE_DIR / "global" / "memory" / "index.db"

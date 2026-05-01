@@ -149,8 +149,10 @@ def setup_logging(log_level="DEBUG", log_dir=None):
 class WatcherConfig:
     """Watcher configuration loaded from config.yaml or defaults."""
     
+    SECURATRON_HOME = Path(os.getenv("SECURATRON_HOME", str(Path.home() / ".securatron")))
+
     DEFAULT_CONFIG = {
-        'root': str(Path.home() / '.securatron' / 'projects' / 'lab-internal' / 'inbox'),
+        'root': str(SECURATRON_HOME / 'projects' / 'lab-internal' / 'inbox'),
         'queues': [
             {'name': 'inbox', 'path': 'inbox', 'priority': 'normal'},
             {'name': 'inbox.urgent', 'path': 'inbox.urgent', 'priority': 'urgent'},
@@ -162,7 +164,7 @@ class WatcherConfig:
         },
         'age_threshold': 86400,  # 24 hours
         'max_retries': 1,
-        'schema_path': str(Path.home() / '.securatron' / 'global' / 'charters' / 'inbox-ticket.schema.json'),
+        'schema_path': str(SECURATRON_HOME / 'global' / 'charters' / 'inbox-ticket.schema.json'),
     }
     
     def __init__(self, config_path=None):

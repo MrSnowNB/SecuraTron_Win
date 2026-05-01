@@ -1,11 +1,12 @@
 import json
 import hashlib
-from pathlib import Path
 from datetime import datetime
-from ulid import ULID
+import os
+from pathlib import Path
 
-BASE_DIR = Path.home() / ".securatron"
+BASE_DIR = Path(os.getenv("SECURATRON_HOME", str(Path.home() / ".securatron")))
 LEDGER_DIR = BASE_DIR / "global" / "ledger"
+
 
 def inputs_hash(inputs: dict) -> str:
     """Generate a stable SHA-256 hash of the inputs for distinct input counting."""

@@ -4,7 +4,7 @@ import ipaddress
 import os
 from pathlib import Path
 
-BASE_DIR = Path.home() / ".securatron"
+BASE_DIR = Path(os.getenv("SECURATRON_HOME", str(Path.home() / ".securatron")))
 
 def check_scope_match(target: str, allowed_list: list[str]) -> bool:
     """Check if a target matches an entry or is contained within a CIDR range."""

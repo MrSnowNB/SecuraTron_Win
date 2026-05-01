@@ -4,7 +4,7 @@ import yaml
 from datetime import datetime
 from pathlib import Path
 
-BASE_DIR = Path.home() / ".securatron"
+BASE_DIR = Path(os.getenv("SECURATRON_HOME", str(Path.home() / ".securatron")))
 
 def read(tier: str, path: str, project_id: str = None, session_id: str = None):
     """Read data from a specific tier."""

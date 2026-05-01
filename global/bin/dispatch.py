@@ -2,6 +2,7 @@ import sys
 import subprocess
 import time
 import json
+import os
 from pathlib import Path
 from datetime import datetime
 
@@ -12,16 +13,25 @@ import ledger
 import mem
 import parsers
 
-BASE_DIR = Path.home() / ".securatron"
+BASE_DIR = Path(os.getenv("SECURATRON_HOME", str(Path.home() / ".securatron")))
 
 def safe_expand(cmd_template: str, inputs: dict) -> str:
-    """Safely expand command templates using inputs."""
+    """Safely expand command templates using inputs, platform-aware."""
     expanded = cmd_template
+    is_windows = os.name == 'nt'
+    
     for key, value in inputs.items():
         placeholder = "{" + key + "}"
         if placeholder in expanded:
-            # Simple escape: wrap in single quotes
-            safe_value = str(value).replace("'", "'\\''")
+            val_str = str(value)
+            if is_windows:
+                # Windows cmd.exe escaping: wrap in double quotes, escape internal double quotes
+                # Note: simple replacement, might need more for complex cases
+                safe_value = '"' + val_str.replace('"', '""') + '"'
+            else:
+                # Linux/Unix shell escaping: wrap in single quotes
+                safe_value = "'" + val_str.replace("'", "'\\''") + "'"
+            
             expanded = expanded.replace(placeholder, safe_value)
     return expanded
 
